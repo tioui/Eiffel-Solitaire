@@ -1,0 +1,223 @@
+note
+	description: "A place on a {BOARD} where you can put a {DECK} of {CARD}"
+	author: "Louis Marchand"
+	date: "Mon, 01 Aug 2016 21:17:25 +0000"
+	revision: "0.1"
+
+class
+	DECK_SLOT
+
+inherit
+	DRAWABLE
+		redefine
+			make
+		end
+
+create
+	make_not_showed,
+	make_standard,
+	make_reload
+
+feature {NONE} -- Initialization
+
+	make(a_image_factory:IMAGE_FACTORY)
+			-- <Precursor>
+		do
+			create deck.make
+			Precursor(a_image_factory)
+		end
+
+	make_not_showed(a_image_factory:IMAGE_FACTORY)
+			-- Initialization of `Current' using `a_image_factory' as `image_factory'
+			-- `Current' will not show any {DECK} indicator
+		do
+			make(a_image_factory)
+			must_show := False
+		ensure
+			Is_Not_Showed: is_not_showed
+		end
+
+	make_standard(a_image_factory:IMAGE_FACTORY)
+			-- Initialization of `Current' using `a_image_factory' as `image_factory'
+			-- `Current' will show a standard (empty) {DECK} indicator
+		do
+			is_standard := True
+			make(a_image_factory)
+		ensure
+			Is_Not_Standard: is_standard
+		end
+
+	make_reload(a_image_factory:IMAGE_FACTORY)
+			-- Initialization of `Current' using `a_image_factory' as `image_factory'
+			-- `Current' will show a reload {DECK} indicator
+		do
+			is_reload := True
+			make(a_image_factory)
+		ensure
+			Is_Reload: is_reload
+		end
+
+feature -- Access
+
+	identifier:INTEGER assign set_identifier
+			-- May be used to identify `Current'
+
+	set_identifier(a_identifier:INTEGER)
+			-- Assign `a_identifier' to `identifier'
+		do
+			identifier := a_identifier
+		ensure
+			Is_Assign: identifier ~ a_identifier
+		end
+
+	is_clickable:BOOLEAN assign set_is_clickable
+			-- An action is launched when the user `Clicked on `Current'
+
+	set_is_clickable(a_value:BOOLEAN)
+			-- Assign `a_value' to `is_clickable'
+		do
+			is_clickable := a_value
+		ensure
+			Is_Assign: is_clickable ~ a_value
+		end
+
+	is_expanded:BOOLEAN assign set_is_expanded
+			-- When True, every {CARD} of the `deck' will be visible.
+			-- When False, only the on on the top
+
+	set_is_expanded(a_value:BOOLEAN)
+			-- Assign `a_value' to `is_expanded'
+		do
+			is_expanded := a_value
+		ensure
+			Is_Assign: is_expanded ~ a_value
+		end
+
+	is_count_visible:BOOLEAN assign set_is_count_visible
+			-- True if every the user have to be able to have an
+			-- indication of how many card is in the `deck'
+
+	set_is_count_visible(a_value:BOOLEAN)
+			-- Assin `a_value' to `is_count_visible'
+		do
+			is_count_visible := a_value
+		ensure
+			Is_Assign: is_count_visible ~ a_value
+		end
+
+	is_draggable:BOOLEAN assign set_is_draggable
+			-- When True, any {CARD} on the `deck' may be dragged (with those on top of it)
+			-- If `is_expanded' is false, only the top {CARD} of the `deck' can be dragged
+
+	set_is_draggable(a_value:BOOLEAN)
+			-- Assign `a_value' to `is_draggable'
+		do
+			is_draggable := a_value
+		ensure
+			Is_Assign: is_draggable ~ a_value
+		end
+
+	can_receive_drag:BOOLEAN assign set_can_receive_drag
+			-- When True, `Curent' may received a {CARD}s drag
+
+	set_can_receive_drag(a_value:BOOLEAN)
+			-- Assign `a_value' to `can_receive_drag'
+		do
+			can_receive_drag := a_value
+		ensure
+			Is_Assign: can_receive_drag ~ a_value
+		end
+
+	is_not_showed:BOOLEAN
+			-- `Current' does not have any {DECK} indicator to print on the board
+		do
+			Result := not must_show
+		end
+
+	is_standard:BOOLEAN
+			-- `Current' have a standard {DECK} indicator (empty)
+
+	set_standard
+			-- Set `is_standard'
+		do
+			unset_all
+			is_standard := True
+			reload_image
+		end
+
+	is_reload:BOOLEAN
+			-- `Current' have a reload {DECK} indicator
+
+	set_reload
+			-- Set `is_reload'
+		do
+			unset_all
+			is_reload := True
+			reload_image
+		end
+
+	reload_image
+			-- <Precursor>
+		local
+			l_must_change:BOOLEAN
+		do
+			l_must_change := False
+			if is_standard then
+				image_factory.get_deck_standard
+				l_must_change := True
+			elseif is_reload then
+				image_factory.get_deck_reload
+				l_must_change := True
+			end
+			if l_must_change then
+				if attached image_factory.image_informations as la_info then
+					set_image_informations(la_info)
+				end
+			end
+		end
+
+	deck:DECK[CARD] assign set_deck
+			-- The {DECK} of {CARD} that `Current' contain.
+
+	set_deck(a_deck: like deck)
+			-- Assign `a_deck' to `deck'
+		do
+			deck := a_deck
+		ensure
+			Is_Assign: deck ~ a_deck
+		end
+
+feature {NONE} -- Implementation
+
+	unset_all
+			-- Put to False every {DECK} indicator `is_...'
+		do
+			must_show := False
+			is_standard := False
+			is_reload := False
+		end
+
+invariant
+	Only_Not_Showed: is_not_showed implies (not is_standard and not is_reload)
+	Only_Standard: is_standard implies (not is_not_showed and not is_reload)
+	Only_Reload: is_reload implies (not is_not_showed and not is_standard)
+
+note
+	license: "[
+		    Copyright (C) 2016 Louis Marchand
+
+		    This program is free software: you can redistribute it and/or modify
+		    it under the terms of the GNU General Public License as published by
+		    the Free Software Foundation, either version 3 of the License, or
+		    (at your option) any later version.
+
+		    This program is distributed in the hope that it will be useful,
+		    but WITHOUT ANY WARRANTY; without even the implied warranty of
+		    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+		    GNU General Public License for more details.
+
+		    You should have received a copy of the GNU General Public License
+		    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+		]"
+
+end
