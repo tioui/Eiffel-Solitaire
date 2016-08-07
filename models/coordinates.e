@@ -4,10 +4,21 @@ note
 	date: "Mon, 01 Aug 2016 21:17:25 +0000"
 	revision: "0.1"
 
-deferred class
+class
 	COORDINATES
 
+create
+	default_create,
+	set_coordinates
+
 feature -- Access
+
+	set_coordinates(a_x, a_y:INTEGER)
+			-- Initialization of `Current' using `a_x' as `x' and `a_y' as `y'
+		do
+			x := a_x
+			y := a_y
+		end
 
 	x:INTEGER assign set_x
 			-- The horizontal coordinate of `Current'

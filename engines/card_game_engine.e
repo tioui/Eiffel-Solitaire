@@ -10,8 +10,13 @@ deferred class
 inherit
 	GAME_ENGINE
 		redefine
-			board, prepare, set_events
+			board, prepare, set_events, animation_done
 		end
+
+feature {NONE} -- Constants
+
+	Expanded_face_up_deck_gap:INTEGER = 60
+	Expanded_face_down_deck_gap:INTEGER = 15
 
 feature -- Access
 
@@ -21,7 +26,45 @@ feature -- Access
 	board:CARD_BOARD
 			-- <Precursor>
 
+	move_deck_slot_to_deck_slot_fast(a_moving, a_destination:DECK_SLOT; a_time:NATURAL)
+			-- Rapidly move `a_moving' to `a_destination' in `a_time' millisecond
+		local
+			l_animation:DECK_SLOT_MOVING_ANIMATION
+			l_timestamp:NATURAL
+			l_destination:COORDINATES
+		do
+			l_timestamp := game_library.time_since_create
+			if a_destination.deck.is_empty then
+				l_destination :=a_destination
+			else
+				if a_destination.is_expanded then
+					if a_destination.deck.last.is_face_up then
+						create l_destination.set_coordinates (a_destination.deck.last.x, a_destination.deck.last.y + expanded_face_up_deck_gap)
+					else
+						create l_destination.set_coordinates (a_destination.deck.last.x, a_destination.deck.last.y + expanded_face_down_deck_gap)
+					end
+				elseif a_destination.is_count_visible then
+					create l_destination.set_coordinates (a_destination.deck.last.x + 1, a_destination.deck.last.y + 1)
+				else
+					l_destination := a_destination.deck.last
+				end
+			end
+			create l_animation.make (a_moving, a_destination, l_destination, l_timestamp, l_timestamp + a_time)
+			animations.extend (l_animation)
+		end
+
 feature {NONE} -- Implementation
+
+	animation_done(a_animation:ANIMATION)
+			-- <Precursor>
+		do
+			if attached {DECK_SLOT_MOVING_ANIMATION}a_animation as la_animation then
+				la_animation.destintation_deck_slot.deck.finish
+				la_animation.destintation_deck_slot.deck.merge_right (la_animation.moving_deck_slot.deck)
+				la_animation.moving_deck_slot.deck.wipe_out
+				update_deck_slot (la_animation.destintation_deck_slot)
+			end
+		end
 
 	set_events
 			-- <Precursor>
@@ -50,7 +93,7 @@ feature {NONE} -- Implementation
 			l_deck_slot:detachable DECK_SLOT
 			l_drawable:DRAWABLE
 		do
-			if a_mouse_state.is_left_button_released and is_dragging then
+			if a_mouse_state.is_left_button_released and is_dragging and not is_animate then
 				l_mouse_coordinates := to_board_coordinate(a_mouse_state.x, a_mouse_state.y)
 				l_deck_slots := board.deck_slots
 				from
@@ -64,21 +107,31 @@ feature {NONE} -- Implementation
 					else
 						l_drawable := l_deck_slots.item.deck.last
 					end
-					if is_on_drawable (l_mouse_coordinates.x, l_mouse_coordinates.y, l_drawable) then
+					if
+						(
+							l_deck_slots.item.is_expanded and
+							is_on (
+									l_mouse_coordinates.x, l_mouse_coordinates.y, l_drawable.x, l_drawable.y,
+									l_drawable.width, l_drawable.height + expanded_face_up_deck_gap
+								)
+						)
+					or else
+						(not l_deck_slots.item.is_expanded and is_on_drawable (l_mouse_coordinates.x, l_mouse_coordinates.y, l_drawable))
+					then
 						l_deck_slot := l_deck_slots.item
 					end
 					l_deck_slots.forth
 				end
 				if
 					attached l_deck_slot as la_slot and
-					attached dragging_deck as la_dragging_deck and
-					attached origin_draggin_deck_slot as la_dragging_slot
+					attached dragging_slot as la_dragging_slot and
+					attached origin_draggin_deck_slot as la_origin_slot
 				then
-					if can_drop(slot_converter (la_slot), la_dragging_deck) then
+					if can_drop(slot_converter (la_slot), la_dragging_slot.deck) then
 						la_slot.deck.finish
-						la_slot.deck.merge_right (la_dragging_deck)
-						after_drop(slot_converter (la_dragging_slot), slot_converter (la_slot), la_dragging_deck)
-						dragging_deck := Void
+						la_slot.deck.merge_right (la_dragging_slot.deck)
+						after_drop(slot_converter (la_origin_slot), slot_converter (la_slot), la_dragging_slot.deck)
+						la_dragging_slot.deck.wipe_out
 						origin_draggin_deck_slot := Void
 						update_deck_slot(la_slot)
 					else
@@ -97,16 +150,13 @@ feature {NONE} -- Implementation
 		end
 
 	cancel_drop
-			-- Stop the current drag and replace {CARDS} in the `dragging_deck' where they belong
+			-- Stop the current drag and replace {CARDS} in the `dragging_slot' where they belong
 		do
 			if
-				attached dragging_deck as la_deck and
-				attached origin_draggin_deck_slot as la_slot
+				attached dragging_slot as la_dragging_slot and
+				attached origin_draggin_deck_slot as la_origin_slot
 			then
-				la_slot.deck.finish
-				la_slot.deck.merge_right (la_deck)
-				dragging_deck := Void
-				origin_draggin_deck_slot := Void
+				move_deck_slot_to_deck_slot_fast (la_dragging_slot, la_origin_slot, 100)
 			end
 		end
 
@@ -126,7 +176,7 @@ feature {NONE} -- Implementation
 			l_mouse_coordinates:TUPLE[x, y:INTEGER]
 			is_done:BOOLEAN
 		do
-			if a_mouse_state.is_left_button_pressed and not is_dragging then
+			if a_mouse_state.is_left_button_pressed and not is_dragging and not is_animate then
 				l_mouse_coordinates := to_board_coordinate(a_mouse_state.x, a_mouse_state.y)
 				l_deck_slots := board.deck_slots
 				from
@@ -213,7 +263,7 @@ feature {NONE} -- Implementation
 			if can_drag (slot_converter (a_slot), a_index, deck_converter(a_deck)) then
 				drag_x := a_mouse_coordinates.x - a_slot.deck.at (a_index).x
 				drag_y := a_mouse_coordinates.y - a_slot.deck.at (a_index).y
-				dragging_deck := deck_converter(a_deck)
+				dragging_slot.deck.merge_right (deck_converter(a_deck))
 				origin_draggin_deck_slot := a_slot
 				from
 					a_slot.deck.go_i_th(a_index)
@@ -280,18 +330,22 @@ feature {NONE} -- Implementation
 							if la_deck.item.deck.last.is_face_up then
 								draw_drawable(a_renderer, la_deck.item.deck.last)
 							else
-								card_back.set_x (la_deck.item.x)
-								card_back.set_y (la_deck.item.y)
+								card_back.set_coordinates (la_deck.item.x, la_deck.item.y)
 								draw_drawable(a_renderer, card_back)
 							end
 						end
 					end
 				end
 			end
-			if attached dragging_deck as la_deck then
+			if attached dragging_slot as la_slot and not is_animate then
 				l_cursor :=cursor_coordinate
-				update_expanded_deck(la_deck, l_cursor.x - drag_x, l_cursor.y - drag_y)
-				draw_deck(a_renderer, la_deck)
+				la_slot.set_coordinates(l_cursor.x - drag_x, l_cursor.y - drag_y)
+				update_deck_slot(la_slot)
+				draw_deck(a_renderer, la_slot.deck)
+			end
+			if is_animate and then attached {DECK_SLOT_MOVING_ANIMATION}animations.item as la_animation then
+				update_deck_slot(la_animation.moving_deck_slot)
+				draw_deck(a_renderer, la_animation.moving_deck_slot.deck)
 			end
 		end
 
@@ -311,8 +365,7 @@ feature {NONE} -- Implementation
 			-- Set the `x' and `y' to `a_x' and `a_y' of every {CARD} of `a_deck'
 		do
 			across a_deck as la_deck loop
-				la_deck.item.set_x (a_x)
-				la_deck.item.set_y (a_y)
+				la_deck.item.set_coordinates (a_x, a_y)
 			end
 		end
 
@@ -333,9 +386,9 @@ feature {NONE} -- Implementation
 				end
 			end
 			if l_face_up_count > 0 then
-				l_indentation := (((board.height - a_y) - (l_face_down_count * 15) - card_back.height) // l_face_up_count).min(60)
+				l_indentation := (((board.height - a_y) - (l_face_down_count * Expanded_face_down_deck_gap) - card_back.height) // l_face_up_count).min(expanded_face_up_deck_gap)
 			else
-				l_indentation := 60
+				l_indentation := expanded_face_up_deck_gap
 			end
 			l_draw_y := a_y
 			l_draw_x := a_x
@@ -343,17 +396,17 @@ feature {NONE} -- Implementation
 				la_deck.item.set_x(l_draw_x)
 				if la_deck.item.is_face_up then
 					if
-						not is_dragging and l_indentation < 60 and not la_deck.is_last and
+						not is_dragging and l_indentation < expanded_face_up_deck_gap and not la_deck.is_last and
 						cursor_on(l_draw_x, l_draw_y, la_deck.item.width, l_indentation)
 					then
-						la_deck.item.set_y (l_draw_y - (60 - l_indentation))
+						la_deck.item.set_y (l_draw_y - (expanded_face_up_deck_gap - l_indentation))
 					else
 						la_deck.item.set_y (l_draw_y)
 					end
 					l_draw_y := l_draw_y + l_indentation
 				else
 					la_deck.item.set_y (l_draw_y)
-					l_draw_y := l_draw_y + 15
+					l_draw_y := l_draw_y + Expanded_face_down_deck_gap
 				end
 			end
 		end
@@ -367,8 +420,7 @@ feature {NONE} -- Implementation
 			l_draw_y := a_y
 			l_draw_x := a_x
 			across a_deck as la_deck loop
-				la_deck.item.set_x (l_draw_x)
-				la_deck.item.set_y (l_draw_y)
+				la_deck.item.set_coordinates (l_draw_x, l_draw_y)
 				l_draw_y := l_draw_y + 1
 				l_draw_x := l_draw_x + 1
 			end
@@ -382,8 +434,7 @@ feature {NONE} -- Implementation
 				if la_deck.item.is_face_up then
 					draw_drawable(a_renderer, la_deck.item)
 				else
-					card_back.set_x (la_deck.item.x)
-					card_back.set_y (la_deck.item.y)
+					card_back.set_coordinates(la_deck.item.x, la_deck.item.y)
 					draw_drawable(a_renderer, card_back)
 				end
 			end
@@ -392,11 +443,11 @@ feature {NONE} -- Implementation
 	card_back:CARD_BACK
 			-- {DRAWABLE} representing the back of a {CARD}
 
-	dragging_deck:detachable DECK[CARD]
-			-- The {DECK} used to drag card on the window
+	dragging_slot:DECK_SLOT
+			-- The {DECK_SLOT} used to drag card on the window
 
 	origin_draggin_deck_slot:detachable DECK_SLOT
-			-- The {DECK_SLOT} that the `dragging_deck' origin from
+			-- The {DECK_SLOT} that the `dragging_slot' origin from
 
 	drag_x, drag_y:INTEGER
 			-- The distance between the cursor and the upper left point of the dragged {DECK}
@@ -404,11 +455,9 @@ feature {NONE} -- Implementation
 	is_dragging:BOOLEAN
 			-- There is presently something that is being dragged
 		do
-			Result := attached dragging_deck
+			Result := not dragging_slot.deck.is_empty
 		end
 
-invariant
-	Dragging_deck_valid: attached dragging_deck as la_deck implies not la_deck.is_empty
 note
 	license: "[
 		    Copyright (C) 2016 Louis Marchand

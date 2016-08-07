@@ -131,35 +131,49 @@ feature {NONE} -- Implementation
 
 	manage_click(a_slot:COMMON_DECK_SLOT)
 			-- <Precursor>
-		local
-			l_card:COMMON_CARD
-			l_waste_deck:DECK[COMMON_CARD]
 		do
 			if
 				a_slot.identifier ~ Reload_slot and
 				attached board.get_deck_slot_from_identifier (Waste_slot) as la_slot
 			then
-				l_waste_deck := la_slot.deck
-				if a_slot.deck.is_empty then
-					from
-						l_waste_deck.finish
-					until
-						l_waste_deck.exhausted
-					loop
-						l_waste_deck.item.hide
-						a_slot.deck.extend (l_waste_deck.item)
-						l_waste_deck.back
-					end
-					l_waste_deck.wipe_out
-					update_deck_slot (la_slot)
-				else
-					a_slot.deck.finish
-					l_card := a_slot.deck.item
-					l_card.show
-					a_slot.deck.remove
-					l_waste_deck.extend (l_card)
-					update_deck_slot (la_slot)
+				manage_reload_click(a_slot, la_slot)
+			end
+		end
+
+	manage_reload_click(a_reload_slot, a_waste_slot:COMMON_DECK_SLOT)
+			-- Launched when the user has clicked on the Reload {DECK_SLOT}
+		require
+			Reload_Slot_Valid: a_reload_slot.identifier ~ Reload_slot
+			Waste_Slot_Valid: a_waste_slot.identifier ~ Waste_slot
+		local
+			l_card:COMMON_CARD
+			l_waste_deck:DECK[COMMON_CARD]
+			l_temporary_slot:COMMON_DECK_SLOT
+		do
+			create l_temporary_slot.make_not_showed (context.image_factory)
+			l_waste_deck := a_waste_slot.deck
+			if a_reload_slot.deck.is_empty then
+				from
+					l_waste_deck.finish
+				until
+					l_waste_deck.exhausted
+				loop
+					l_waste_deck.item.hide
+					l_temporary_slot.deck.extend (l_waste_deck.item)
+					l_waste_deck.back
 				end
+				l_waste_deck.wipe_out
+				l_temporary_slot.is_count_visible := True
+				l_temporary_slot.set_coordinates (a_waste_slot.x, a_waste_slot.y)
+				move_deck_slot_to_deck_slot_fast (l_temporary_slot, a_reload_slot, 50)
+			else
+				a_reload_slot.deck.finish
+				l_card := a_reload_slot.deck.item
+				l_card.show
+				a_reload_slot.deck.remove
+				l_temporary_slot.deck.extend (l_card)
+				l_temporary_slot.set_coordinates (a_reload_slot.x, a_reload_slot.y)
+				move_deck_slot_to_deck_slot_fast (l_temporary_slot, a_waste_slot, 50)
 			end
 		end
 

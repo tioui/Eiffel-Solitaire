@@ -22,6 +22,7 @@ feature {NONE} -- Initialization
 			default_create
 			context := a_context
 			quit_signal_received := False
+			create {LINKED_QUEUE[ANIMATION]}animations.make
 		ensure
 			Is_Context_Assign: context ~ a_context
 		end
@@ -58,11 +59,47 @@ feature -- Access
 			context.window.renderer.present
 		end
 
+	add_moving_animation(a_from, a_to:COORDINATES; a_time:NATURAL)
+			-- Add an {ANIMATION} taking `a_from' to `a_to' in `a_time' millisecond
+		require
+			Time_Positive: a_time > 0
+		local
+			l_animation:MOVING_ANIMATION
+			l_timestamp:NATURAL
+		do
+			l_timestamp := game_library.time_since_create
+			create l_animation.make (a_from, a_to, l_timestamp, l_timestamp + a_time)
+			animations.extend (l_animation)
+		end
+
 feature {NONE} -- Implementation
+
+	animations:QUEUE[ANIMATION]
+			-- Every {ANIMATION} that have to be played before continuing running `Current'
+
+	is_animate:BOOLEAN
+			-- An {ANIMATION} is pending
+		do
+			Result := not animations.is_empty
+		end
+
+	animation_done(a_animation:ANIMATION)
+			-- Launched when the `a_animation' has finished
+		require
+			Animation_Is_Done:a_animation.is_done
+		do
+		end
 
 	on_iteration(a_timestamp:NATURAL_32)
 			-- Launched at each game loop
 		do
+			if animations.readable then
+				animations.item.update (a_timestamp)
+				if animations.item.is_done then
+					animation_done(animations.item)
+					animations.remove
+				end
+			end
 			redraw_scene
 		end
 
@@ -89,7 +126,7 @@ feature {NONE} -- Implementation
 									a_drawable.y
 								)
 		end
-		
+
 note
 	license: "[
 		    Copyright (C) 2016 Louis Marchand

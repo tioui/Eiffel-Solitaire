@@ -34,8 +34,7 @@ feature -- Access
 			-- Add a new `a_deck_slot' in `deck_slots' at position (`a_x',`a_y') idetified by `a_identifier'
 		do
 			a_deck_slot.set_identifier (a_identifier)
-			a_deck_slot.set_x (a_x)
-			a_deck_slot.set_y (a_y)
+			a_deck_slot.set_coordinates (a_x, a_y)
 			deck_slots.extend (a_deck_slot)
 		end
 

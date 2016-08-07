@@ -10,7 +10,7 @@ deferred class
 inherit
 	CARD_GAME_ENGINE
 		redefine
-			make, deck_factory, board, deck_converter, dragging_deck, slot_converter
+			make, deck_factory, board, deck_converter, dragging_slot, slot_converter
 		end
 
 feature {NONE}
@@ -22,6 +22,8 @@ feature {NONE}
 			create deck_factory.make (context.image_factory)
 			create board.make (context.image_factory)
 			create {COMMON_CARD_BACK}card_back.make(context.image_factory)
+			create dragging_slot.make_not_showed (context.image_factory)
+			dragging_slot.is_expanded := True
 		end
 
 feature -- Access
@@ -32,7 +34,7 @@ feature -- Access
 	board:COMMON_CARD_BOARD
 			-- <Precursor>
 
-	dragging_deck:detachable DECK[COMMON_CARD]
+	dragging_slot:COMMON_DECK_SLOT
 			-- <Precursor>
 
 feature {NONE} -- Implementation

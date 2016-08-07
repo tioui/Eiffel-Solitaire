@@ -9,7 +9,7 @@ deferred class
 
 inherit
 	COORDINATES
-
+	
 feature {NONE} -- Initialization
 
 	make(a_image_factory:IMAGE_FACTORY)
