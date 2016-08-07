@@ -33,7 +33,7 @@ feature {NONE} -- Initialization
 			is_clickable := a_other.is_clickable
 			is_count_visible := a_other.is_count_visible
 			is_draggable := a_other.is_draggable
-			is_expanded := a_other.is_expanded
+			is_expanded_vertically := a_other.is_expanded_vertically
 			is_reload := a_other.is_reload
 			is_standard := a_other.is_standard
 			must_show := a_other.must_show
@@ -107,16 +107,28 @@ feature -- Access
 			Is_Assign: is_clickable ~ a_value
 		end
 
-	is_expanded:BOOLEAN assign set_is_expanded
-			-- When True, every {CARD} of the `deck' will be visible.
+	is_expanded_vertically:BOOLEAN assign set_is_expanded_vertically
+			-- When True, every {CARD} of the `deck' will be visible (by moving expanding them vertically).
 			-- When False, only the on on the top
 
-	set_is_expanded(a_value:BOOLEAN)
-			-- Assign `a_value' to `is_expanded'
+	set_is_expanded_vertically(a_value:BOOLEAN)
+			-- Assign `a_value' to `is_expanded_vertically'
 		do
-			is_expanded := a_value
+			is_expanded_vertically := a_value
 		ensure
-			Is_Assign: is_expanded ~ a_value
+			Is_Assign: is_expanded_vertically ~ a_value
+		end
+
+	is_expanded_horizontally:BOOLEAN assign set_is_expanded_horizontally
+			-- When True, every {CARD} of the `deck' will be visible (by moving expanding them horizontally).
+			-- When False, only the on on the top
+
+	set_is_expanded_horizontally(a_value:BOOLEAN)
+			-- Assign `a_value' to `is_expanded_horizontally'
+		do
+			is_expanded_horizontally := a_value
+		ensure
+			Is_Assign: is_expanded_horizontally ~ a_value
 		end
 
 	is_count_visible:BOOLEAN assign set_is_count_visible
@@ -133,7 +145,7 @@ feature -- Access
 
 	is_draggable:BOOLEAN assign set_is_draggable
 			-- When True, any {CARD} on the `deck' may be dragged (with those on top of it)
-			-- If `is_expanded' is false, only the top {CARD} of the `deck' can be dragged
+			-- If `is_expanded_vertically' is false, only the top {CARD} of the `deck' can be dragged
 
 	set_is_draggable(a_value:BOOLEAN)
 			-- Assign `a_value' to `is_draggable'

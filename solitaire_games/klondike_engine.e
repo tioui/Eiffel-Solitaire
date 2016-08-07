@@ -37,7 +37,6 @@ feature {NONE} -- Implementation
 					la_deck_slot.deck.last.show
 				end
 			end
-
 		end
 
 	prepare_board
@@ -62,7 +61,7 @@ feature {NONE} -- Implementation
 			across 1 |..| 7 as la_index loop
 				board.add_standard_deck_slot (35 + ((la_index.item - 1) * 232), 344, Tableau_slots.at(la_index.item))
 				board.last_added_deck_slot.is_draggable := True
-				board.last_added_deck_slot.is_expanded := True
+				board.last_added_deck_slot.is_expanded_vertically := True
 				board.last_added_deck_slot.can_receive_drag := True
 			end
 		end

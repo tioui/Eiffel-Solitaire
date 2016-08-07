@@ -44,7 +44,7 @@ feature {NONE} -- Initialization
 			is_clickable := a_other.is_clickable
 			is_count_visible := a_other.is_count_visible
 			is_draggable := a_other.is_draggable
-			is_expanded := a_other.is_expanded
+			is_expanded_vertically := a_other.is_expanded_vertically
 			is_reload := a_other.is_reload
 			is_standard := a_other.is_standard
 			must_show := a_other.must_show

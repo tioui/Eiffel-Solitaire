@@ -23,7 +23,7 @@ feature {NONE}
 			create board.make (context.image_factory)
 			create {COMMON_CARD_BACK}card_back.make(context.image_factory)
 			create dragging_slot.make_not_showed (context.image_factory)
-			dragging_slot.is_expanded := True
+			dragging_slot.is_expanded_vertically := True
 		end
 
 feature -- Access

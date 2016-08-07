@@ -15,8 +15,10 @@ inherit
 
 feature {NONE} -- Constants
 
-	Expanded_face_up_deck_gap:INTEGER = 60
-			-- The distance between a card facing up and the next card when expanding a {DECK}
+	expanded_vertically_face_up_deck_gap:INTEGER = 60
+			-- The distance between a card facing up and the next card when vertically expanding a {DECK}
+	expanded_horizontally_face_up_deck_gap:INTEGER = 30
+			-- The distance between a card facing up and the next card when horizontally expanding a {DECK}
 	Expanded_face_down_deck_gap:INTEGER = 15
 			-- The distance between a card facing down and the next card when expanding a {DECK}
 
@@ -39,11 +41,17 @@ feature -- Access
 			if a_destination.deck.is_empty then
 				l_destination :=a_destination
 			else
-				if a_destination.is_expanded then
+				if a_destination.is_expanded_vertically then
 					if a_destination.deck.last.is_face_up then
-						create l_destination.set_coordinates (a_destination.deck.last.x, a_destination.deck.last.y + expanded_face_up_deck_gap)
+						create l_destination.set_coordinates (a_destination.deck.last.x, a_destination.deck.last.y + expanded_vertically_face_up_deck_gap)
 					else
 						create l_destination.set_coordinates (a_destination.deck.last.x, a_destination.deck.last.y + expanded_face_down_deck_gap)
+					end
+				elseif a_destination.is_expanded_horizontally then
+					if a_destination.deck.last.is_face_up then
+						create l_destination.set_coordinates (a_destination.deck.last.x + expanded_horizontally_face_up_deck_gap, a_destination.deck.last.y)
+					else
+						create l_destination.set_coordinates (a_destination.deck.last.x + expanded_face_down_deck_gap, a_destination.deck.last.y)
 					end
 				elseif a_destination.is_count_visible then
 					create l_destination.set_coordinates (a_destination.deck.last.x + 1, a_destination.deck.last.y + 1)
@@ -111,14 +119,20 @@ feature {NONE} -- Implementation
 					end
 					if
 						(
-							l_deck_slots.item.is_expanded and
+							l_deck_slots.item.is_expanded_vertically and
 							is_on (
 									l_mouse_coordinates.x, l_mouse_coordinates.y, l_drawable.x, l_drawable.y,
-									l_drawable.width, l_drawable.height + expanded_face_up_deck_gap
+									l_drawable.width, l_drawable.height + expanded_vertically_face_up_deck_gap
+								)
+						) or (
+							l_deck_slots.item.is_expanded_horizontally and
+							is_on (
+									l_mouse_coordinates.x, l_mouse_coordinates.y, l_drawable.x, l_drawable.y,
+									l_drawable.width + expanded_horizontally_face_up_deck_gap, l_drawable.height
 								)
 						)
 					or else
-						(not l_deck_slots.item.is_expanded and is_on_drawable (l_mouse_coordinates.x, l_mouse_coordinates.y, l_drawable))
+						(not l_deck_slots.item.is_expanded_vertically and is_on_drawable (l_mouse_coordinates.x, l_mouse_coordinates.y, l_drawable))
 					then
 						l_deck_slot := l_deck_slots.item
 					end
@@ -232,7 +246,7 @@ feature {NONE} -- Implementation
 			l_deck := a_deck_slot.deck
 			if l_deck.count > 0 then
 				l_deck.finish
-				if a_deck_slot.is_expanded then
+				if a_deck_slot.is_expanded_vertically then
 					from
 						l_deck.finish
 					until
@@ -321,20 +335,20 @@ feature {NONE} -- Implementation
 				if la_deck.item.deck.is_empty then
 					draw_drawable(a_renderer, la_deck.item)
 				else
-					if la_deck.item.is_expanded then
-						update_expanded_deck(la_deck.item.deck, la_deck.item.x, la_deck.item.y)
+					if
+						la_deck.item.is_expanded_vertically or
+						la_deck.item.is_expanded_horizontally
+					then
+						update_deck_slot(la_deck.item)
+						draw_deck(a_renderer, la_deck.item.deck)
+					elseif la_deck.item.is_count_visible then
 						draw_deck(a_renderer, la_deck.item.deck)
 					else
-						if la_deck.item.is_count_visible then
-							update_count_visible_deck(la_deck.item.deck, la_deck.item.x, la_deck.item.y)
-							draw_deck(a_renderer, la_deck.item.deck)
+						if la_deck.item.deck.last.is_face_up then
+							draw_drawable(a_renderer, la_deck.item.deck.last)
 						else
-							if la_deck.item.deck.last.is_face_up then
-								draw_drawable(a_renderer, la_deck.item.deck.last)
-							else
-								card_back.set_coordinates (la_deck.item.x, la_deck.item.y)
-								draw_drawable(a_renderer, card_back)
-							end
+							card_back.set_coordinates (la_deck.item.x, la_deck.item.y)
+							draw_drawable(a_renderer, card_back)
 						end
 					end
 				end
@@ -354,8 +368,10 @@ feature {NONE} -- Implementation
 	update_deck_slot(a_deck_slot:DECK_SLOT)
 			-- Update the `x' and `y' of every {CARD}s in `a_deck_slot'
 		do
-			if a_deck_slot.is_expanded then
-				update_expanded_deck(a_deck_slot.deck, a_deck_slot.x, a_deck_slot.y)
+			if a_deck_slot.is_expanded_vertically then
+				update_expanded_vertically_deck(a_deck_slot.deck, a_deck_slot.x, a_deck_slot.y)
+			elseif a_deck_slot.is_expanded_horizontally then
+				update_expanded_horizontally_deck(a_deck_slot.deck, a_deck_slot.x, a_deck_slot.y)
 			elseif a_deck_slot.is_count_visible then
 				update_count_visible_deck(a_deck_slot.deck, a_deck_slot.x, a_deck_slot.y)
 			else
@@ -371,7 +387,7 @@ feature {NONE} -- Implementation
 			end
 		end
 
-	update_expanded_deck(a_deck:DECK[CARD]; a_x, a_y:INTEGER)
+	update_expanded_vertically_deck(a_deck:DECK[CARD]; a_x, a_y:INTEGER)
 			-- Set the `x' and `y' of every {CARD} of `a_deck'
 			-- knowing that `a_deck' is expanded and is at position (`a_x',`a_y')
 		local
@@ -388,9 +404,9 @@ feature {NONE} -- Implementation
 				end
 			end
 			if l_face_up_count > 0 then
-				l_indentation := (((board.height - a_y) - (l_face_down_count * Expanded_face_down_deck_gap) - card_back.height) // l_face_up_count).min(expanded_face_up_deck_gap)
+				l_indentation := (((board.height - a_y) - (l_face_down_count * Expanded_face_down_deck_gap) - card_back.height) // l_face_up_count).min(expanded_vertically_face_up_deck_gap)
 			else
-				l_indentation := expanded_face_up_deck_gap
+				l_indentation := expanded_vertically_face_up_deck_gap
 			end
 			l_draw_y := a_y
 			l_draw_x := a_x
@@ -398,10 +414,10 @@ feature {NONE} -- Implementation
 				la_deck.item.set_x(l_draw_x)
 				if la_deck.item.is_face_up then
 					if
-						not is_dragging and l_indentation < expanded_face_up_deck_gap and not la_deck.is_last and
+						not is_dragging and l_indentation < expanded_vertically_face_up_deck_gap and not la_deck.is_last and
 						cursor_on(l_draw_x, l_draw_y, la_deck.item.width, l_indentation)
 					then
-						la_deck.item.set_y (l_draw_y - (expanded_face_up_deck_gap - l_indentation))
+						la_deck.item.set_y (l_draw_y - (expanded_vertically_face_up_deck_gap - l_indentation))
 					else
 						la_deck.item.set_y (l_draw_y)
 					end
@@ -409,6 +425,48 @@ feature {NONE} -- Implementation
 				else
 					la_deck.item.set_y (l_draw_y)
 					l_draw_y := l_draw_y + Expanded_face_down_deck_gap
+				end
+			end
+		end
+
+	update_expanded_horizontally_deck(a_deck:DECK[CARD]; a_x, a_y:INTEGER)
+			-- Set the `x' and `y' of every {CARD} of `a_deck'
+			-- knowing that `a_deck' is expanded and is at position (`a_x',`a_y')
+		local
+			l_draw_y, l_draw_x:INTEGER
+			l_face_up_count, l_face_down_count, l_indentation:INTEGER
+		do
+			l_face_up_count := 0
+			l_face_down_count := 0
+			across a_deck as la_deck loop
+				if la_deck.item.is_face_up then
+					l_face_up_count := l_face_up_count + 1
+				else
+					l_face_down_count := l_face_down_count + 1
+				end
+			end
+			if l_face_up_count > 0 then
+				l_indentation := (((board.width - a_x) - (l_face_down_count * Expanded_face_down_deck_gap) - card_back.width) // l_face_up_count).min(expanded_horizontally_face_up_deck_gap)
+			else
+				l_indentation := expanded_horizontally_face_up_deck_gap
+			end
+			l_draw_y := a_y
+			l_draw_x := a_x
+			across a_deck as la_deck loop
+				la_deck.item.set_y (l_draw_y)
+				if la_deck.item.is_face_up then
+					if
+						not is_dragging and l_indentation < expanded_horizontally_face_up_deck_gap and not la_deck.is_last and
+						cursor_on(l_draw_x, l_draw_y, l_indentation, la_deck.item.height)
+					then
+						la_deck.item.set_x (l_draw_x - (expanded_horizontally_face_up_deck_gap - l_indentation))
+					else
+						la_deck.item.set_x (l_draw_x)
+					end
+					l_draw_x := l_draw_x + l_indentation
+				else
+					la_deck.item.set_x (l_draw_x)
+					l_draw_x := l_draw_x + Expanded_face_down_deck_gap
 				end
 			end
 		end
