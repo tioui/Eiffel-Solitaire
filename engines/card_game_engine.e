@@ -16,7 +16,9 @@ inherit
 feature {NONE} -- Constants
 
 	Expanded_face_up_deck_gap:INTEGER = 60
+			-- The distance between a card facing up and the next card when expanding a {DECK}
 	Expanded_face_down_deck_gap:INTEGER = 15
+			-- The distance between a card facing down and the next card when expanding a {DECK}
 
 feature -- Access
 
@@ -174,21 +176,21 @@ feature {NONE} -- Implementation
 		local
 			l_deck_slots:LIST[DECK_SLOT]
 			l_mouse_coordinates:TUPLE[x, y:INTEGER]
-			is_done:BOOLEAN
+			l_is_done:BOOLEAN
 		do
 			if a_mouse_state.is_left_button_pressed and not is_dragging and not is_animate then
 				l_mouse_coordinates := to_board_coordinate(a_mouse_state.x, a_mouse_state.y)
 				l_deck_slots := board.deck_slots
 				from
 					l_deck_slots.start
-					is_done := False
+					l_is_done := False
 				until
 					l_deck_slots.exhausted or
-					is_done
+					l_is_done
 				loop
 					if l_deck_slots.item.is_draggable then
 						on_mouse_down_dragging(l_deck_slots.item, l_mouse_coordinates)
-						is_done := is_dragging
+						l_is_done := is_dragging
 					elseif l_deck_slots.item.is_clickable then
 						on_mouse_down_clicked(l_deck_slots.item, l_mouse_coordinates)
 					end
@@ -225,7 +227,7 @@ feature {NONE} -- Implementation
 			Is_Draggable: a_deck_slot.is_draggable
 		local
 			l_deck:DECK[CARD]
-			is_done:BOOLEAN
+			l_is_done:BOOLEAN
 		do
 			l_deck := a_deck_slot.deck
 			if l_deck.count > 0 then
@@ -235,11 +237,11 @@ feature {NONE} -- Implementation
 						l_deck.finish
 					until
 						l_deck.exhausted or
-						is_done
+						l_is_done
 					loop
 						if is_on_drawable (a_mouse_coordinates.x, a_mouse_coordinates.y, l_deck.item) then
 							start_dragging(a_deck_slot, l_deck.index, l_deck.duplicate (l_deck.count), a_mouse_coordinates)
-							is_done := True
+							l_is_done := True
 						end
 						l_deck.back
 					end

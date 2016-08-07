@@ -19,15 +19,15 @@ create
 
 feature -- Access
 
-	remove_i_th(i:INTEGER)
-			-- Remove the element at index `i'.
+	remove_i_th(a_index:INTEGER)
+			-- Remove the element at index `a_index'.
 		require
-			valid_key: valid_index (i)
+			valid_key: valid_index (a_index)
 		local
 			l_pos: CURSOR
 		do
 			l_pos := cursor
-			go_i_th (i)
+			go_i_th (a_index)
 			remove
 			if valid_cursor(l_pos) then
 				go_to (l_pos)

@@ -140,6 +140,7 @@ feature {NONE} -- Implementation
 		end
 
 	is_on_drawable(a_x, a_y:INTEGER; a_drawable:DRAWABLE):BOOLEAN
+			-- True if the point (`a_x',`a_y') is on `a_drawable'
 		do
 			Result := is_on(a_x, a_y, a_drawable.x, a_drawable.y, a_drawable.width, a_drawable.height)
 		end

@@ -1,8 +1,8 @@
 note
-	description: "Summary description for {MOVING_ANIMATION}."
-	author: ""
-	date: "$Date$"
-	revision: "$Revision$"
+	description: "An {ANIMATION} used to move object around."
+	author: "Louis Marchand"
+	date: "Sun, 07 Aug 2016 15:09:15 +0000"
+	revision: "0.1"
 
 class
 	MOVING_ANIMATION

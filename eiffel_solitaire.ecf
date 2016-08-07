@@ -18,6 +18,7 @@
 		<cluster name="eiffel_solitaire" location=".\" recursive="true">
 			<file_rule>
 				<exclude>/EIFGENs$</exclude>
+				<exclude>/.git$</exclude>
 				<exclude>/ressources$</exclude>
 			</file_rule>
 		</cluster>
