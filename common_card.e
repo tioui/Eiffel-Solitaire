@@ -166,6 +166,30 @@ feature -- Access
 			Result := suit = Diamond_suit
 		end
 
+	is_red:BOOLEAN
+			-- The `suit' of `Current' is a red one (Heart or Diamond)
+		do
+			Result := is_heart or is_diamond
+		ensure
+			Is_Valid: (
+						(is_heart or is_diamond) implies Result
+					) and (
+						Result implies (is_heart or is_diamond)
+					)
+		end
+
+	is_black:BOOLEAN
+			-- The `suit' of `Current' is a black one (Club or Spade)
+		do
+			Result := is_spade or is_club
+		ensure
+			Is_Valid: (
+						(is_spade or is_club) implies Result
+					) and (
+						Result implies (is_spade or is_club)
+					)
+		end
+
 	is_club:BOOLEAN
 			-- The `suit' of `Current' is Club
 		do
@@ -196,6 +220,18 @@ invariant
 	Value_Valid: value >= 1 and value <= 13
 	Suit_Valid: suit >= 1 and suit <= 5
 	Joker_Valid: suit ~ 5 implies (value >= 1 and value <= 2)
+	Red_Valid: (
+					(is_heart or is_diamond) implies is_red
+				) and (
+					is_red implies (is_heart or is_diamond)
+				)
+	Black_Valid: (
+					(is_spade or is_club) implies is_black
+				) and (
+					is_black implies (is_spade or is_club)
+				)
+	Black_Not_Red: is_black implies not is_red
+	Red_Not_Black: is_red implies not is_black
 
 note
 	license: "[

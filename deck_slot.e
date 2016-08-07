@@ -9,6 +9,8 @@ class
 
 inherit
 	DRAWABLE
+		export
+			{DECK_SLOT} image_factory
 		redefine
 			make
 		end
@@ -16,9 +18,33 @@ inherit
 create
 	make_not_showed,
 	make_standard,
-	make_reload
+	make_reload,
+	make_from_other
 
 feature {NONE} -- Initialization
+
+	make_from_other(a_other:DECK_SLOT)
+			-- Initialization of `Current' copying the data of `a_other'
+		do
+			deck := a_other.deck
+			can_receive_drag := a_other.can_receive_drag
+			height := a_other.height
+			identifier := a_other.identifier
+			is_clickable := a_other.is_clickable
+			is_count_visible := a_other.is_count_visible
+			is_draggable := a_other.is_draggable
+			is_expanded := a_other.is_expanded
+			is_reload := a_other.is_reload
+			is_standard := a_other.is_standard
+			must_show := a_other.must_show
+			sub_image_x := a_other.sub_image_x
+			sub_image_y := a_other.sub_image_y
+			image_factory := a_other.image_factory
+			image := a_other.image
+			width := a_other.width
+			x := a_other.x
+			y := a_other.y
+		end
 
 	make(a_image_factory:IMAGE_FACTORY)
 			-- <Precursor>
@@ -201,6 +227,7 @@ invariant
 	Only_Not_Showed: is_not_showed implies (not is_standard and not is_reload)
 	Only_Standard: is_standard implies (not is_not_showed and not is_reload)
 	Only_Reload: is_reload implies (not is_not_showed and not is_standard)
+	Draggable_Not_Clickable: not (is_draggable and is_clickable)
 
 note
 	license: "[

@@ -22,7 +22,7 @@ feature {NONE} -- Initialization
 			-- <Precursor>
 		do
 			Precursor(a_factory)
-			create {LINKED_LIST[DECK_SLOT]}deck_slots.make
+			create {LINKED_LIST[like deck_slots.item]}deck_slots.make
 		end
 
 feature -- Access
@@ -30,7 +30,7 @@ feature -- Access
 	deck_slots:LIST[DECK_SLOT]
 			-- Every slot that can be used to put a {DECK} of {CARD}
 
-	add_deck_slot(a_x, a_y:INTEGER; a_identifier:INTEGER; a_deck_slot:DECK_SLOT)
+	add_deck_slot(a_x, a_y:INTEGER; a_identifier:INTEGER; a_deck_slot:like deck_slots.item)
 			-- Add a new `a_deck_slot' in `deck_slots' at position (`a_x',`a_y') idetified by `a_identifier'
 		do
 			a_deck_slot.set_identifier (a_identifier)
@@ -66,7 +66,9 @@ feature -- Access
 			add_deck_slot(a_x, a_y, a_identifier, l_slot)
 		end
 
-	get_deck_slot_from_identifier(a_identifier:INTEGER):detachable DECK_SLOT
+	get_deck_slot_from_identifier(a_identifier:INTEGER):detachable like deck_slots.item
+			-- Get the first {DECK_SLOT} in `deck_slots' that have `a_identifier'
+			-- as `identifier'. Void if not found
 		do
 			across deck_slots as la_slot loop
 				if la_slot.item.identifier ~ a_identifier then
@@ -75,7 +77,7 @@ feature -- Access
 			end
 		end
 
-	last_added_deck_slot:DECK_SLOT
+	last_added_deck_slot:like deck_slots.item
 			-- The last {DECK_SLOT} that has been added by a `add_*_deck_slot'
 		require
 			Not_Empty: not deck_slots.is_empty

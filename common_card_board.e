@@ -9,11 +9,18 @@ class
 
 inherit
 	CARD_BOARD
+		redefine
+			deck_slots, add_not_showed_deck_slot, add_standard_deck_slot,
+			add_reload_deck_slot
+		end
 
 create
 	make
 
 feature -- Access
+
+	deck_slots:LIST[COMMON_DECK_SLOT]
+			-- Every slot that can be used to put a {DECK} of {CARD}
 
 	add_heart_deck_slot(a_x, a_y:INTEGER; a_identifier:INTEGER)
 			-- Add a new heart {DECK_SLOT} in `deck_slots' at position (`a_x',`a_y') idetified by `a_identifier'
@@ -48,6 +55,33 @@ feature -- Access
 			l_slot:COMMON_DECK_SLOT
 		do
 			create l_slot.make_spade (image_factory)
+			add_deck_slot(a_x, a_y, a_identifier, l_slot)
+		end
+
+	add_not_showed_deck_slot(a_x, a_y:INTEGER; a_identifier:INTEGER)
+			-- <Precursor>
+		local
+			l_slot:COMMON_DECK_SLOT
+		do
+			create l_slot.make_not_showed (image_factory)
+			add_deck_slot(a_x, a_y, a_identifier, l_slot)
+		end
+
+	add_standard_deck_slot(a_x, a_y:INTEGER; a_identifier:INTEGER)
+			-- <Precursor>
+		local
+			l_slot:COMMON_DECK_SLOT
+		do
+			create l_slot.make_standard (image_factory)
+			add_deck_slot(a_x, a_y, a_identifier, l_slot)
+		end
+
+	add_reload_deck_slot(a_x, a_y:INTEGER; a_identifier:INTEGER)
+			-- <Precursor>
+		local
+			l_slot:COMMON_DECK_SLOT
+		do
+			create l_slot.make_reload (image_factory)
 			add_deck_slot(a_x, a_y, a_identifier, l_slot)
 		end
 

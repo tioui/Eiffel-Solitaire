@@ -10,7 +10,7 @@ deferred class
 inherit
 	CARD_GAME_ENGINE
 		redefine
-			make, deck_factory, board, dragging_deck
+			make, deck_factory, board, deck_converter, dragging_deck, slot_converter
 		end
 
 feature {NONE}
@@ -22,7 +22,6 @@ feature {NONE}
 			create deck_factory.make (context.image_factory)
 			create board.make (context.image_factory)
 			create {COMMON_CARD_BACK}card_back.make(context.image_factory)
-			create dragging_deck.make
 		end
 
 feature -- Access
@@ -33,8 +32,55 @@ feature -- Access
 	board:COMMON_CARD_BOARD
 			-- <Precursor>
 
-	dragging_deck:DECK[COMMON_CARD]
+	dragging_deck:detachable DECK[COMMON_CARD]
 			-- <Precursor>
+
+feature {NONE} -- Implementation
+
+	deck_converter(a_deck:DECK[CARD]):DECK[COMMON_CARD]
+			-- <Precursor>
+		do
+			if attached {DECK[COMMON_CARD]}a_deck as la_deck then
+				Result := la_deck
+			else
+				create Result.make
+				across a_deck as la_deck loop
+					if attached {COMMON_CARD}la_deck.item as la_card then
+						Result.extend (la_card)
+					end
+				end
+			end
+		end
+
+	slot_converter(a_slot:DECK_SLOT):COMMON_DECK_SLOT
+			-- Convert `a_slot' to the correct type of {CARD} for `Current'
+		do
+			if attached {COMMON_DECK_SLOT}a_slot as la_slot then
+				Result := la_slot
+			else
+				create Result.make_from_other (a_slot)
+			end
+		end
+
+	can_drag(a_deck_slot:COMMON_DECK_SLOT; a_index:INTEGER; a_deck:DECK[COMMON_CARD]):BOOLEAN
+			-- <Precursor>
+		deferred
+		end
+
+	can_drop(a_deck_slot:COMMON_DECK_SLOT; a_dragging_deck:DECK[COMMON_CARD]):BOOLEAN
+			-- <Precursor>
+		deferred
+		end
+
+	after_drop(a_from_slot:COMMON_DECK_SLOT; a_destination_slot:COMMON_DECK_SLOT; a_dragging_deck:DECK[COMMON_CARD])
+			-- <Precursor>
+		deferred
+		end
+
+	manage_click(a_slot:COMMON_DECK_SLOT)
+			-- <Precursor>
+		deferred
+		end
 
 invariant
 note

@@ -123,10 +123,25 @@ feature {NONE} -- Implementation
 			l_cursor_coordinate:TUPLE[x, y:INTEGER]
 		do
 			l_cursor_coordinate := cursor_coordinate
-			Result := (
-						l_cursor_coordinate.x >= a_x and l_cursor_coordinate.x < a_x + a_width and
-						l_cursor_coordinate.y >= a_y and l_cursor_coordinate.y < a_y + a_height
+			Result := is_on(
+						l_cursor_coordinate.x, l_cursor_coordinate.y,
+						a_x, a_y, a_width, a_height
 					)
+		end
+
+	is_on(a_x, a_y, a_reference_x, a_reference_y, a_reference_width, a_reference_height:INTEGER):BOOLEAN
+			-- The point (`a_x',`a_y') is in the rectangle starting at (`a_reference_x',`a_reference_y')
+			-- with dimension `a_reference_width'x`a_reference_height'
+		do
+			Result := (
+						a_x >= a_reference_x and a_x < a_reference_x + a_reference_width and
+						a_y >= a_reference_y and a_y < a_reference_y + a_reference_height
+					)
+		end
+
+	is_on_drawable(a_x, a_y:INTEGER; a_drawable:DRAWABLE):BOOLEAN
+		do
+			Result := is_on(a_x, a_y, a_drawable.x, a_drawable.y, a_drawable.width, a_drawable.height)
 		end
 
 	to_board_coordinate(a_x, a_y:INTEGER):TUPLE[x, y:INTEGER]

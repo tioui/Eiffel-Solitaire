@@ -9,16 +9,16 @@ class
 
 feature -- Constants
 
-	Heart_suit:INTEGER = 1
+	Club_suit:INTEGER = 1
 			-- The Hearth suit identifier
 
 	Diamond_suit:INTEGER = 2
 			-- The Diamond suit identifier
 
-	Spade_suit:INTEGER = 3
+	Heart_suit:INTEGER = 3
 			-- The Spade suit identifier
 
-	Club_suit:INTEGER = 4
+	Spade_suit:INTEGER = 4
 			-- The Club suit identifier
 
 note

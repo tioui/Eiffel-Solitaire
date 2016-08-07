@@ -10,7 +10,7 @@ class
 inherit
 	DECK_SLOT
 		redefine
-			reload_image, unset_all
+			reload_image, unset_all, make_from_other, deck
 		end
 
 create
@@ -20,9 +20,48 @@ create
 	make_diamond,
 	make_club,
 	make_spade,
-	make_reload
+	make_reload,
+	make_from_other
 
 feature {NONE} -- Initialization
+
+	make_from_other(a_other:DECK_SLOT)
+			-- Initialization of `Current' copying the data of `a_other'
+		do
+			if attached {DECK[COMMON_CARD]}a_other.deck as la_deck then
+				deck := la_deck
+			else
+				create deck.make
+				across a_other.deck as la_deck loop
+					if attached {COMMON_CARD}la_deck.item as la_card then
+						deck.extend (la_card)
+					end
+				end
+			end
+			can_receive_drag := a_other.can_receive_drag
+			height := a_other.height
+			identifier := a_other.identifier
+			is_clickable := a_other.is_clickable
+			is_count_visible := a_other.is_count_visible
+			is_draggable := a_other.is_draggable
+			is_expanded := a_other.is_expanded
+			is_reload := a_other.is_reload
+			is_standard := a_other.is_standard
+			must_show := a_other.must_show
+			sub_image_x := a_other.sub_image_x
+			sub_image_y := a_other.sub_image_y
+			image_factory := a_other.image_factory
+			image := a_other.image
+			width := a_other.width
+			x := a_other.x
+			y := a_other.y
+			if attached {COMMON_DECK_SLOT}a_other as la_other then
+				is_club := la_other.is_club
+				is_heart := la_other.is_heart
+				is_spade := la_other.is_spade
+				is_diamond := la_other.is_diamond
+			end
+		end
 
 	make_heart(a_image_factory:IMAGE_FACTORY)
 			-- Initialization of `Current' using `a_image_factory' as `image_factory'
@@ -141,6 +180,9 @@ feature -- Access
 				end
 			end
 		end
+
+	deck:DECK[COMMON_CARD] assign set_deck
+			-- The {DECK} of {CARD} that `Current' contain.
 
 feature {NONE} -- Implementation
 
