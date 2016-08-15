@@ -97,7 +97,7 @@ feature -- Access
 		end
 
 	is_clickable:BOOLEAN assign set_is_clickable
-			-- An action is launched when the user `Clicked on `Current'
+			-- Launch an action when the user clicked on `Current'
 
 	set_is_clickable(a_value:BOOLEAN)
 			-- Assign `a_value' to `is_clickable'
@@ -105,6 +105,17 @@ feature -- Access
 			is_clickable := a_value
 		ensure
 			Is_Assign: is_clickable ~ a_value
+		end
+
+	is_double_clickable:BOOLEAN assign set_is_double_clickable
+			-- Launch an action when the user double clicked on `Current'
+
+	set_is_double_clickable(a_value:BOOLEAN)
+			-- Assign `a_value' to `is_double_clickable'
+		do
+			is_double_clickable := a_value
+		ensure
+			Is_Assign: is_double_clickable ~ a_value
 		end
 
 	is_expanded_vertically:BOOLEAN assign set_is_expanded_vertically
@@ -129,6 +140,20 @@ feature -- Access
 			is_expanded_horizontally := a_value
 		ensure
 			Is_Assign: is_expanded_horizontally ~ a_value
+		end
+
+	expanded_count:INTEGER assign set_expanded_count
+			-- If `is_expanded_vertically' or `is_expanded_horizontally' is set,
+			-- indicate the number of card to actually expand. 0 for every {CARD}.
+
+	set_expanded_count(a_count:INTEGER)
+			-- Assign `a_count' to `expanded_count'
+		require
+			Positive: a_count >= 0
+		do
+			expanded_count := a_count
+		ensure
+			Is_Assign: expanded_count ~ a_count
 		end
 
 	is_count_visible:BOOLEAN assign set_is_count_visible

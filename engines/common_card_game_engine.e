@@ -79,7 +79,7 @@ feature {NONE} -- Implementation
 		deferred
 		end
 
-	manage_click(a_slot:COMMON_DECK_SLOT)
+	manage_click(a_slot:COMMON_DECK_SLOT; a_index:INTEGER)
 			-- <Precursor>
 		deferred
 		end

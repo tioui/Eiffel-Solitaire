@@ -19,7 +19,7 @@ feature {NONE} -- Initialization
 	make
 			-- Run application.
 		local
-			l_engine:KLONDIKE_ENGINE
+			l_engine:FREECELL_ENGINE
 			l_context:CONTEXT
 			l_printer:LOCALIZED_PRINTER
 		do
@@ -39,7 +39,7 @@ feature {NONE} -- Initialization
 			game_library.quit_library
 			image_file_library.quit_library
 		end
-		
+
 note
 	license: "[
 		    Copyright (C) 2016 Louis Marchand

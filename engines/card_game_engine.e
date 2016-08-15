@@ -90,72 +90,120 @@ feature {NONE} -- Implementation
 			-- Launched when the user move the mouse on the window
 		do
 			if is_dragging and not a_mouse_state.is_left_button_pressed then
-				cancel_drop
+				cancel_drop(True)
 			end
 		end
 
 	on_mouse_up(a_timestamp:NATURAL_32; a_mouse_state:GAME_MOUSE_BUTTON_RELEASED_STATE;
 																	a_nb_clicks:NATURAL_8)
 			-- Launched when the user press a mouse button
+		do
+			if a_mouse_state.is_left_button_released and not is_animate then
+				if a_timestamp < clicking_timestamp + 300 then
+					if is_dragging then
+						cancel_drop(False)
+					end
+					on_mouse_up_clicking(a_mouse_state, a_nb_clicks)
+				elseif is_dragging then
+					on_mouse_up_dragging(a_mouse_state)
+				end
+			end
+		end
+
+	on_mouse_up_clicking(a_mouse_state:GAME_MOUSE_BUTTON_RELEASED_STATE; a_nb_clicks:NATURAL_8)
+			-- Launched when the user released a dragging mouse button
+		local
+			l_mouse_coordinates:TUPLE[x, y:INTEGER]
+			l_slot_cursor:INDEXABLE_ITERATION_CURSOR[DECK_SLOT]
+			l_is_done:BOOLEAN
+		do
+			l_mouse_coordinates := to_board_coordinate(a_mouse_state.x, a_mouse_state.y)
+			from
+				l_slot_cursor := board.deck_slots.new_cursor.reversed
+				l_slot_cursor.start
+				l_is_done := False
+			until
+				l_slot_cursor.after or
+				l_is_done
+			loop
+				if
+					across l_slot_cursor.item.deck as la_deck some is_on_drawable (l_mouse_coordinates.x, l_mouse_coordinates.y, la_deck.item) end
+				or
+					is_on_drawable (l_mouse_coordinates.x, l_mouse_coordinates.y, l_slot_cursor.item)
+				then
+					l_is_done := True
+				end
+				if l_is_done then
+					if l_slot_cursor.item.is_clickable then
+						on_mouse_down_clicked(l_slot_cursor.item, l_mouse_coordinates, agent manage_click)
+					end
+					if l_slot_cursor.item.is_double_clickable and a_nb_clicks > 1 then
+						on_mouse_down_clicked(l_slot_cursor.item, l_mouse_coordinates, agent manage_double_click)
+					end
+				end
+				l_slot_cursor.forth
+			end
+		end
+
+	on_mouse_up_dragging(a_mouse_state:GAME_MOUSE_BUTTON_RELEASED_STATE)
+			-- Launched when the user released a dragging mouse button
 		local
 			l_deck_slots:LIST[DECK_SLOT]
 			l_mouse_coordinates:TUPLE[x, y:INTEGER]
 			l_deck_slot:detachable DECK_SLOT
 			l_drawable:DRAWABLE
 		do
-			if a_mouse_state.is_left_button_released and is_dragging and not is_animate then
-				l_mouse_coordinates := to_board_coordinate(a_mouse_state.x, a_mouse_state.y)
-				l_deck_slots := board.deck_slots
-				from
-					l_deck_slots.start
-				until
-					l_deck_slots.exhausted or
-					attached l_deck_slot
-				loop
-					if l_deck_slots.item.deck.is_empty then
-						l_drawable := l_deck_slots.item
-					else
-						l_drawable := l_deck_slots.item.deck.last
-					end
-					if
-						(
-							l_deck_slots.item.is_expanded_vertically and
-							is_on (
-									l_mouse_coordinates.x, l_mouse_coordinates.y, l_drawable.x, l_drawable.y,
-									l_drawable.width, l_drawable.height + expanded_vertically_face_up_deck_gap
-								)
-						) or (
-							l_deck_slots.item.is_expanded_horizontally and
-							is_on (
-									l_mouse_coordinates.x, l_mouse_coordinates.y, l_drawable.x, l_drawable.y,
-									l_drawable.width + expanded_horizontally_face_up_deck_gap, l_drawable.height
-								)
-						)
-					or else
-						(not l_deck_slots.item.is_expanded_vertically and is_on_drawable (l_mouse_coordinates.x, l_mouse_coordinates.y, l_drawable))
-					then
-						l_deck_slot := l_deck_slots.item
-					end
-					l_deck_slots.forth
+			l_mouse_coordinates := to_board_coordinate(a_mouse_state.x, a_mouse_state.y)
+			l_deck_slots := board.deck_slots
+			from
+				l_deck_slots.start
+			until
+				l_deck_slots.exhausted or
+				attached l_deck_slot
+			loop
+				if l_deck_slots.item.deck.is_empty then
+					l_drawable := l_deck_slots.item
+				else
+					l_drawable := l_deck_slots.item.deck.last
 				end
 				if
-					attached l_deck_slot as la_slot and
-					attached dragging_slot as la_dragging_slot and
-					attached origin_draggin_deck_slot as la_origin_slot
+					(
+						l_deck_slots.item.is_expanded_vertically and
+						is_on (
+								l_mouse_coordinates.x, l_mouse_coordinates.y, l_drawable.x, l_drawable.y,
+								l_drawable.width, l_drawable.height + expanded_vertically_face_up_deck_gap
+							)
+					) or (
+						l_deck_slots.item.is_expanded_horizontally and
+						is_on (
+								l_mouse_coordinates.x, l_mouse_coordinates.y, l_drawable.x, l_drawable.y,
+								l_drawable.width + expanded_horizontally_face_up_deck_gap, l_drawable.height
+							)
+					)
+				or else
+					(not l_deck_slots.item.is_expanded_vertically and is_on_drawable (l_mouse_coordinates.x, l_mouse_coordinates.y, l_drawable))
 				then
-					if can_drop(slot_converter (la_slot), la_dragging_slot.deck) then
-						la_slot.deck.finish
-						la_slot.deck.merge_right (la_dragging_slot.deck)
-						after_drop(slot_converter (la_origin_slot), slot_converter (la_slot), la_dragging_slot.deck)
-						la_dragging_slot.deck.wipe_out
-						origin_draggin_deck_slot := Void
-						update_deck_slot(la_slot)
-					else
-						cancel_drop
-					end
-				else
-					cancel_drop
+					l_deck_slot := l_deck_slots.item
 				end
+				l_deck_slots.forth
+			end
+			if
+				attached l_deck_slot as la_slot and
+				attached dragging_slot as la_dragging_slot and
+				attached origin_draggin_deck_slot as la_origin_slot
+			then
+				if can_drop(slot_converter (la_slot), la_dragging_slot.deck) then
+					la_slot.deck.finish
+					la_slot.deck.merge_right (la_dragging_slot.deck)
+					after_drop(slot_converter (la_origin_slot), slot_converter (la_slot), la_dragging_slot.deck)
+					la_dragging_slot.deck.wipe_out
+					origin_draggin_deck_slot := Void
+					update_deck_slot(la_slot)
+				else
+					cancel_drop(True)
+				end
+			else
+				cancel_drop(True)
 			end
 		end
 
@@ -165,14 +213,20 @@ feature {NONE} -- Implementation
 		deferred
 		end
 
-	cancel_drop
+	cancel_drop(a_must_animate:BOOLEAN)
 			-- Stop the current drag and replace {CARDS} in the `dragging_slot' where they belong
 		do
 			if
 				attached dragging_slot as la_dragging_slot and
 				attached origin_draggin_deck_slot as la_origin_slot
 			then
-				move_deck_slot_to_deck_slot_fast (la_dragging_slot, la_origin_slot, 100)
+				if a_must_animate then
+					move_deck_slot_to_deck_slot_fast (la_dragging_slot, la_origin_slot, 100)
+				else
+					la_origin_slot.deck.finish
+					la_origin_slot.deck.merge_right (la_dragging_slot.deck)
+					la_dragging_slot.deck.wipe_out
+				end
 			end
 		end
 
@@ -193,6 +247,7 @@ feature {NONE} -- Implementation
 			l_is_done:BOOLEAN
 		do
 			if a_mouse_state.is_left_button_pressed and not is_dragging and not is_animate then
+				clicking_timestamp := a_timestamp
 				l_mouse_coordinates := to_board_coordinate(a_mouse_state.x, a_mouse_state.y)
 				l_deck_slots := board.deck_slots
 				from
@@ -205,8 +260,6 @@ feature {NONE} -- Implementation
 					if l_deck_slots.item.is_draggable then
 						on_mouse_down_dragging(l_deck_slots.item, l_mouse_coordinates)
 						l_is_done := is_dragging
-					elseif l_deck_slots.item.is_clickable then
-						on_mouse_down_clicked(l_deck_slots.item, l_mouse_coordinates)
 					end
 					l_deck_slots.forth
 				end
@@ -214,22 +267,37 @@ feature {NONE} -- Implementation
 		end
 
 
-	on_mouse_down_clicked(a_deck_slot:DECK_SLOT; a_mouse_coordinates:TUPLE[x, y:INTEGER])
+	on_mouse_down_clicked(a_deck_slot:DECK_SLOT; a_mouse_coordinates:TUPLE[x, y:INTEGER]; a_manage_click:PROCEDURE[TUPLE[a_slot:DECK_SLOT; a_index:INTEGER]])
 			-- Manage the clicked version of `on_mouse_down'
 		require
-			Is_Clicakble: a_deck_slot.is_clickable
+			Is_Clicakble: a_deck_slot.is_clickable or a_deck_slot.is_double_clickable
 		local
 			l_deck:DECK[CARD]
+			l_is_done:BOOLEAN
+			l_cursor:READABLE_INDEXABLE_ITERATION_CURSOR[CARD]
 		do
 			l_deck := a_deck_slot.deck
 			if l_deck.count > 0 then
-				if is_on_drawable (a_mouse_coordinates.x, a_mouse_coordinates.y, l_deck.last) then
-					manage_click(slot_converter (a_deck_slot))
-					update_deck_slot (a_deck_slot)
+				from
+					l_cursor:= l_deck.new_cursor.reversed
+					l_cursor.start
+					l_is_done := False
+				until
+					l_cursor.after or
+					l_is_done
+				loop
+					if is_on_drawable (a_mouse_coordinates.x, a_mouse_coordinates.y, l_cursor.item) then
+						a_manage_click(slot_converter (a_deck_slot), l_cursor.target_index)
+						update_deck_slot (a_deck_slot)
+						l_is_done := True
+					end
+					if not l_cursor.after then
+						l_cursor.forth
+					end
 				end
 			else
 				if is_on_drawable (a_mouse_coordinates.x, a_mouse_coordinates.y, a_deck_slot) then
-					manage_click(slot_converter (a_deck_slot))
+					a_manage_click(slot_converter (a_deck_slot), 0)
 					update_deck_slot (a_deck_slot)
 				end
 			end
@@ -242,43 +310,67 @@ feature {NONE} -- Implementation
 		local
 			l_deck:DECK[CARD]
 			l_is_done:BOOLEAN
+			l_count, l_index:INTEGER
 		do
 			l_deck := a_deck_slot.deck
 			if l_deck.count > 0 then
 				l_deck.finish
-				if a_deck_slot.is_expanded_vertically then
+				if a_deck_slot.is_expanded_vertically or a_deck_slot.is_expanded_horizontally then
+					l_count := a_deck_slot.expanded_count
+					if l_count = 0 or l_count > a_deck_slot.deck.count then
+						l_count := a_deck_slot.deck.count
+					end
 					from
 						l_deck.finish
+						l_index := 1
 					until
 						l_deck.exhausted or
-						l_is_done
+						l_is_done or
+						l_index > l_count
 					loop
 						if is_on_drawable (a_mouse_coordinates.x, a_mouse_coordinates.y, l_deck.item) then
-							start_dragging(a_deck_slot, l_deck.index, l_deck.duplicate (l_deck.count), a_mouse_coordinates)
+							start_dragging(a_deck_slot, l_deck.index, l_deck.duplicate (l_deck.count), a_mouse_coordinates, a_deck_slot.is_expanded_vertically)
 							l_is_done := True
 						end
+						l_index := l_index + 1
 						l_deck.back
 					end
 				else
 					if is_on_drawable (a_mouse_coordinates.x, a_mouse_coordinates.y, l_deck.item) then
-						start_dragging(a_deck_slot, l_deck.index, l_deck.duplicate (1), a_mouse_coordinates)
+						start_dragging(a_deck_slot, l_deck.index, l_deck.duplicate (1), a_mouse_coordinates, True)
 					end
 				end
 			end
 		end
 
-	manage_click(a_slot:DECK_SLOT)
-			-- Launched when a user clicked on `a_slot'
+	manage_click(a_slot:DECK_SLOT; a_index:INTEGER)
+			-- Launched when a user clicked on the card `a_index' of `a_slot' (0 if `a_slot' does not have any {CARD})
+		require
+			Is_Index_0_Valid: (a_index ~ 0 implies a_slot.deck.is_empty) and (a_slot.deck.is_empty implies a_index ~ 0)
+			Is_Index_Valid: a_index >= 0 and a_index <= a_slot.deck.count
+			Is_Clickable: a_slot.is_clickable
 		deferred
 		end
 
-	start_dragging(a_slot:DECK_SLOT; a_index:INTEGER; a_deck:DECK[CARD]; a_mouse_coordinates:TUPLE[x, y:INTEGER])
+	manage_double_click(a_slot:DECK_SLOT; a_index:INTEGER)
+			-- Launched when a user double-clickedon the card `a_index' of `a_slot' (0 if `a_slot' does not have any {CARD})
+		require
+			Is_Index_0_Valid: (a_index ~ 0 implies a_slot.deck.is_empty) and (a_slot.deck.is_empty implies a_index ~ 0)
+			Is_Index_Valid: a_index >= 0 and a_index <= a_slot.deck.count
+			Is_Double_Clickable: a_slot.is_double_clickable
+		deferred
+		end
+
+	start_dragging(a_slot:DECK_SLOT; a_index:INTEGER; a_deck:DECK[CARD]; a_mouse_coordinates:TUPLE[x, y:INTEGER]; is_expanded_vertically:BOOLEAN)
 			-- Start a drag using `a_slot' as original {DECK_SLOT}, `a_index' as the index of the {CARD} in the
 			-- `a_slot'.`deck', the dragging {DECK} is `a_deck' and the user clicked at `a_mouse_coordinate'
 		do
 			if can_drag (slot_converter (a_slot), a_index, deck_converter(a_deck)) then
 				drag_x := a_mouse_coordinates.x - a_slot.deck.at (a_index).x
 				drag_y := a_mouse_coordinates.y - a_slot.deck.at (a_index).y
+				dragging_slot.deck.finish
+				dragging_slot.is_expanded_horizontally := not is_expanded_vertically
+				dragging_slot.is_expanded_vertically := is_expanded_vertically
 				dragging_slot.deck.merge_right (deck_converter(a_deck))
 				origin_draggin_deck_slot := a_slot
 				from
@@ -368,14 +460,15 @@ feature {NONE} -- Implementation
 	update_deck_slot(a_deck_slot:DECK_SLOT)
 			-- Update the `x' and `y' of every {CARD}s in `a_deck_slot'
 		do
-			if a_deck_slot.is_expanded_vertically then
-				update_expanded_vertically_deck(a_deck_slot.deck, a_deck_slot.x, a_deck_slot.y)
-			elseif a_deck_slot.is_expanded_horizontally then
-				update_expanded_horizontally_deck(a_deck_slot.deck, a_deck_slot.x, a_deck_slot.y)
-			elseif a_deck_slot.is_count_visible then
+			if a_deck_slot.is_count_visible then
 				update_count_visible_deck(a_deck_slot.deck, a_deck_slot.x, a_deck_slot.y)
 			else
 				update_deck(a_deck_slot.deck, a_deck_slot.x, a_deck_slot.y)
+			end
+			if a_deck_slot.is_expanded_vertically then
+				update_expanded_vertically_deck(a_deck_slot.deck, a_deck_slot.expanded_count, a_deck_slot.x, a_deck_slot.y)
+			elseif a_deck_slot.is_expanded_horizontally then
+				update_expanded_horizontally_deck(a_deck_slot.deck, a_deck_slot.expanded_count, a_deck_slot.x, a_deck_slot.y)
 			end
 		end
 
@@ -387,88 +480,111 @@ feature {NONE} -- Implementation
 			end
 		end
 
-	update_expanded_vertically_deck(a_deck:DECK[CARD]; a_x, a_y:INTEGER)
+	update_expanded_vertically_deck(a_deck:DECK[CARD]; a_count, a_x, a_y:INTEGER)
 			-- Set the `x' and `y' of every {CARD} of `a_deck'
 			-- knowing that `a_deck' is expanded and is at position (`a_x',`a_y')
 		local
-			l_draw_y, l_draw_x:INTEGER
-			l_face_up_count, l_face_down_count, l_indentation:INTEGER
+			info:TUPLE[expanded_count, face_up_count, face_down_count, x, y:INTEGER]
+			l_indentation:INTEGER
 		do
-			l_face_up_count := 0
-			l_face_down_count := 0
-			across a_deck as la_deck loop
-				if la_deck.item.is_face_up then
-					l_face_up_count := l_face_up_count + 1
-				else
-					l_face_down_count := l_face_down_count + 1
-				end
+			info := prepare_update_expanded_deck(a_deck, a_count, a_x, a_y)
+			if info.face_up_count > 0 then
+				l_indentation := (((board.height - info.y) - (info.face_down_count * Expanded_face_down_deck_gap) - card_back.height) // info.face_up_count).min(expanded_vertically_face_up_deck_gap)
 			end
-			if l_face_up_count > 0 then
-				l_indentation := (((board.height - a_y) - (l_face_down_count * Expanded_face_down_deck_gap) - card_back.height) // l_face_up_count).min(expanded_vertically_face_up_deck_gap)
-			else
-				l_indentation := expanded_vertically_face_up_deck_gap
-			end
-			l_draw_y := a_y
-			l_draw_x := a_x
-			across a_deck as la_deck loop
-				la_deck.item.set_x(l_draw_x)
-				if la_deck.item.is_face_up then
+			from
+				a_deck.go_i_th (a_deck.count - info.expanded_count + 1)
+			until
+				a_deck.exhausted
+			loop
+				a_deck.item.set_x(info.x)
+				if a_deck.item.is_face_up then
 					if
-						not is_dragging and l_indentation < expanded_vertically_face_up_deck_gap and not la_deck.is_last and
-						cursor_on(l_draw_x, l_draw_y, la_deck.item.width, l_indentation)
+						not is_dragging and l_indentation < expanded_vertically_face_up_deck_gap and not a_deck.islast and
+						cursor_on(info.x, info.y, a_deck.item.width, l_indentation)
 					then
-						la_deck.item.set_y (l_draw_y - (expanded_vertically_face_up_deck_gap - l_indentation))
+						a_deck.item.set_y (info.y - (expanded_vertically_face_up_deck_gap - l_indentation))
 					else
-						la_deck.item.set_y (l_draw_y)
+						a_deck.item.set_y (info.y)
 					end
-					l_draw_y := l_draw_y + l_indentation
+					info.y := info.y + l_indentation
 				else
-					la_deck.item.set_y (l_draw_y)
-					l_draw_y := l_draw_y + Expanded_face_down_deck_gap
+					a_deck.item.set_y (info.y)
+					info.y := info.y + Expanded_face_down_deck_gap
 				end
+				a_deck.forth
 			end
 		end
 
-	update_expanded_horizontally_deck(a_deck:DECK[CARD]; a_x, a_y:INTEGER)
+	update_expanded_horizontally_deck(a_deck:DECK[CARD]; a_count, a_x, a_y:INTEGER)
 			-- Set the `x' and `y' of every {CARD} of `a_deck'
 			-- knowing that `a_deck' is expanded and is at position (`a_x',`a_y')
 		local
-			l_draw_y, l_draw_x:INTEGER
-			l_face_up_count, l_face_down_count, l_indentation:INTEGER
+			info:TUPLE[expanded_count, face_up_count, face_down_count, x, y:INTEGER]
+			l_indentation:INTEGER
 		do
+			info := prepare_update_expanded_deck(a_deck, a_count, a_x, a_y)
+			if info.face_up_count > 0 then
+				l_indentation := (((board.width - info.x) - (info.face_down_count * Expanded_face_down_deck_gap) - card_back.width) // info.face_up_count).min(expanded_horizontally_face_up_deck_gap)
+			end
+			from
+				a_deck.go_i_th (a_deck.count - info.expanded_count + 1)
+			until
+				a_deck.exhausted
+			loop
+				a_deck.item.set_y(info.y)
+				if a_deck.item.is_face_up then
+					if
+						not is_dragging and l_indentation < expanded_vertically_face_up_deck_gap and not a_deck.islast and
+						cursor_on(info.x, info.y, l_indentation, a_deck.item.height)
+					then
+						a_deck.item.set_x (info.x - (expanded_horizontally_face_up_deck_gap - l_indentation))
+					else
+						a_deck.item.set_x (info.x)
+					end
+					info.x := info.x + l_indentation
+				else
+					a_deck.item.set_x (info.x)
+					info.x := info.x + Expanded_face_down_deck_gap
+				end
+				a_deck.forth
+			end
+		end
+
+	prepare_update_expanded_deck(a_deck:DECK[CARD]; a_count, a_x, a_y:INTEGER):TUPLE[expanded_count, face_up_count, face_down_count, x, y:INTEGER]
+			-- Prepare values for the `update_expanded_*_deck' routines
+		local
+			l_draw_y, l_draw_x:INTEGER
+			l_face_up_count, l_face_down_count, l_count, l_index:INTEGER
+		do
+			l_count := a_count
+			if l_count = 0 or l_count > a_deck.count then
+				l_count := a_deck.count
+			end
 			l_face_up_count := 0
 			l_face_down_count := 0
-			across a_deck as la_deck loop
-				if la_deck.item.is_face_up then
+			from
+				a_deck.finish
+				l_index := 1
+			until
+				a_deck.exhausted or
+				l_index > l_count
+			loop
+				if a_deck.item.is_face_up then
 					l_face_up_count := l_face_up_count + 1
 				else
 					l_face_down_count := l_face_down_count + 1
 				end
-			end
-			if l_face_up_count > 0 then
-				l_indentation := (((board.width - a_x) - (l_face_down_count * Expanded_face_down_deck_gap) - card_back.width) // l_face_up_count).min(expanded_horizontally_face_up_deck_gap)
-			else
-				l_indentation := expanded_horizontally_face_up_deck_gap
+				l_index := l_index + 1
+				a_deck.back
 			end
 			l_draw_y := a_y
 			l_draw_x := a_x
-			across a_deck as la_deck loop
-				la_deck.item.set_y (l_draw_y)
-				if la_deck.item.is_face_up then
-					if
-						not is_dragging and l_indentation < expanded_horizontally_face_up_deck_gap and not la_deck.is_last and
-						cursor_on(l_draw_x, l_draw_y, l_indentation, la_deck.item.height)
-					then
-						la_deck.item.set_x (l_draw_x - (expanded_horizontally_face_up_deck_gap - l_indentation))
-					else
-						la_deck.item.set_x (l_draw_x)
-					end
-					l_draw_x := l_draw_x + l_indentation
-				else
-					la_deck.item.set_x (l_draw_x)
-					l_draw_x := l_draw_x + Expanded_face_down_deck_gap
-				end
+			a_deck.go_i_th (a_deck.count - l_count + 1)
+			if not a_deck.off then
+				l_draw_y := a_deck.item.y
+				l_draw_x := a_deck.item.x
 			end
+			Result := [l_count, l_face_up_count, l_face_down_count, l_draw_x, l_draw_y]
 		end
 
 	update_count_visible_deck(a_deck:DECK[CARD]; a_x, a_y:INTEGER)
@@ -518,6 +634,9 @@ feature {NONE} -- Implementation
 			Result := not dragging_slot.deck.is_empty
 		end
 
+	clicking_timestamp:NATURAL
+			-- The timestamp when the last click has started
+invariant
 note
 	license: "[
 		    Copyright (C) 2016 Louis Marchand
