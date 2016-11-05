@@ -1,44 +1,38 @@
 note
-	description: "A {BACKGROUND} containing only one color"
+	description: "Ancestor to every factories that are used to load ressources."
 	author: "Louis Marchand"
-	date: "Mon, 01 Aug 2016 21:17:25 +0000"
+	date: "Sat, 05 Nov 2016 03:19:48 +0000"
 	revision: "0.1"
 
-class
-	COLOR_BACKGROUND
-
-inherit
-	BACKGROUND
-
-create
-	make
+deferred class
+	RESSOURCES_FACTORY
 
 feature {NONE} -- Initialization
 
-	make(a_color:GAME_COLOR)
-			-- Initialization of `Current' using `a_color' as `color'
+	make(a_preference_directory:READABLE_STRING_GENERAL)
+			-- Initialization of `Current'
 		do
-			color := a_color
-		ensure
-			Is_Color_Assign: color ~ a_color
-		end
-feature -- Access
-
-	draw(a_renderer:GAME_RENDERER)
-			-- <Precursor>
-		local
-			l_old_color:GAME_COLOR_READABLE
-		do
-			l_old_color := a_renderer.drawing_color
-			a_renderer.set_drawing_color (color)
-			a_renderer.clear
-			a_renderer.set_drawing_color (l_old_color)
+			ressources_directory := {STRING_32}"ressources/"
+--			ressources_directory := a_preference_directory.to_string_32 + {STRING_32}"/ressources/"
 		end
 
-	color:GAME_COLOR
-			-- The color to `draw' on `Current'
+feature {NONE} -- Constants
 
-invariant
+	ressources_directory:STRING_32
+			-- The directory to find the ressources (image and sound)
+
+	Cards_directory:STRING_32
+			-- The directory to find the {CARD} images
+		once
+			Result := Ressources_directory + {STRING_32}"cards/"
+		end
+
+	Boards_directory:STRING_32
+			-- The directory to find the {BOARD} images
+		once
+			Result := Ressources_directory + {STRING_32}"boards/"
+		end
+
 
 note
 	license: "[

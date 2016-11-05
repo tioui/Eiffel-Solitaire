@@ -13,12 +13,13 @@
 		<library name="game_core" location="$ISE_LIBRARY\contrib\library\game2\game_core\game_core-safe.ecf"/>
 		<library name="game_image_file" location="$ISE_LIBRARY\contrib\library\game2\game_image_file\game_image_file-safe.ecf"/>
 		<library name="game_shared" location="$ISE_LIBRARY\contrib\library\game2\game_shared\game_shared-safe.ecf"/>
+		<library name="game_text" location="\usr\local\Eiffel_16.05\contrib\library\game2\game_text\game_text-safe.ecf"/>
 		<library name="preferences_xml" location="$ISE_LIBRARY\library\preferences\preferences_xml-safe.ecf"/>
 		<library name="time" location="$ISE_LIBRARY\library\time\time-safe.ecf"/>
 		<cluster name="eiffel_solitaire" location=".\" recursive="true">
 			<file_rule>
-				<exclude>/EIFGENs$</exclude>
 				<exclude>/.git$</exclude>
+				<exclude>/EIFGENs$</exclude>
 				<exclude>/ressources$</exclude>
 			</file_rule>
 		</cluster>

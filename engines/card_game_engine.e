@@ -361,7 +361,7 @@ feature {NONE} -- Implementation
 		deferred
 		end
 
-	start_dragging(a_slot:DECK_SLOT; a_index:INTEGER; a_deck:DECK[CARD]; a_mouse_coordinates:TUPLE[x, y:INTEGER]; is_expanded_vertically:BOOLEAN)
+	start_dragging(a_slot:DECK_SLOT; a_index:INTEGER; a_deck:DECK[CARD]; a_mouse_coordinates:TUPLE[x, y:INTEGER]; a_is_expanded_vertically:BOOLEAN)
 			-- Start a drag using `a_slot' as original {DECK_SLOT}, `a_index' as the index of the {CARD} in the
 			-- `a_slot'.`deck', the dragging {DECK} is `a_deck' and the user clicked at `a_mouse_coordinate'
 		do
@@ -369,8 +369,8 @@ feature {NONE} -- Implementation
 				drag_x := a_mouse_coordinates.x - a_slot.deck.at (a_index).x
 				drag_y := a_mouse_coordinates.y - a_slot.deck.at (a_index).y
 				dragging_slot.deck.finish
-				dragging_slot.is_expanded_horizontally := not is_expanded_vertically
-				dragging_slot.is_expanded_vertically := is_expanded_vertically
+				dragging_slot.is_expanded_horizontally := not a_is_expanded_vertically
+				dragging_slot.is_expanded_vertically := a_is_expanded_vertically
 				dragging_slot.deck.merge_right (deck_converter(a_deck))
 				origin_draggin_deck_slot := a_slot
 				from
@@ -484,32 +484,32 @@ feature {NONE} -- Implementation
 			-- Set the `x' and `y' of every {CARD} of `a_deck'
 			-- knowing that `a_deck' is expanded and is at position (`a_x',`a_y')
 		local
-			info:TUPLE[expanded_count, face_up_count, face_down_count, x, y:INTEGER]
+			l_info:TUPLE[expanded_count, face_up_count, face_down_count, x, y:INTEGER]
 			l_indentation:INTEGER
 		do
-			info := prepare_update_expanded_deck(a_deck, a_count, a_x, a_y)
-			if info.face_up_count > 0 then
-				l_indentation := (((board.height - info.y) - (info.face_down_count * Expanded_face_down_deck_gap) - card_back.height) // info.face_up_count).min(expanded_vertically_face_up_deck_gap)
+			l_info := prepare_update_expanded_deck(a_deck, a_count, a_x, a_y)
+			if l_info.face_up_count > 0 then
+				l_indentation := (((board.height - l_info.y) - (l_info.face_down_count * Expanded_face_down_deck_gap) - card_back.height) // l_info.face_up_count).min(expanded_vertically_face_up_deck_gap)
 			end
 			from
-				a_deck.go_i_th (a_deck.count - info.expanded_count + 1)
+				a_deck.go_i_th (a_deck.count - l_info.expanded_count + 1)
 			until
 				a_deck.exhausted
 			loop
-				a_deck.item.set_x(info.x)
+				a_deck.item.set_x(l_info.x)
 				if a_deck.item.is_face_up then
 					if
 						not is_dragging and l_indentation < expanded_vertically_face_up_deck_gap and not a_deck.islast and
-						cursor_on(info.x, info.y, a_deck.item.width, l_indentation)
+						cursor_on(l_info.x, l_info.y, a_deck.item.width, l_indentation)
 					then
-						a_deck.item.set_y (info.y - (expanded_vertically_face_up_deck_gap - l_indentation))
+						a_deck.item.set_y (l_info.y - (expanded_vertically_face_up_deck_gap - l_indentation))
 					else
-						a_deck.item.set_y (info.y)
+						a_deck.item.set_y (l_info.y)
 					end
-					info.y := info.y + l_indentation
+					l_info.y := l_info.y + l_indentation
 				else
-					a_deck.item.set_y (info.y)
-					info.y := info.y + Expanded_face_down_deck_gap
+					a_deck.item.set_y (l_info.y)
+					l_info.y := l_info.y + Expanded_face_down_deck_gap
 				end
 				a_deck.forth
 			end
@@ -519,32 +519,32 @@ feature {NONE} -- Implementation
 			-- Set the `x' and `y' of every {CARD} of `a_deck'
 			-- knowing that `a_deck' is expanded and is at position (`a_x',`a_y')
 		local
-			info:TUPLE[expanded_count, face_up_count, face_down_count, x, y:INTEGER]
+			l_info:TUPLE[expanded_count, face_up_count, face_down_count, x, y:INTEGER]
 			l_indentation:INTEGER
 		do
-			info := prepare_update_expanded_deck(a_deck, a_count, a_x, a_y)
-			if info.face_up_count > 0 then
-				l_indentation := (((board.width - info.x) - (info.face_down_count * Expanded_face_down_deck_gap) - card_back.width) // info.face_up_count).min(expanded_horizontally_face_up_deck_gap)
+			l_info := prepare_update_expanded_deck(a_deck, a_count, a_x, a_y)
+			if l_info.face_up_count > 0 then
+				l_indentation := (((board.width - l_info.x) - (l_info.face_down_count * Expanded_face_down_deck_gap) - card_back.width) // l_info.face_up_count).min(expanded_horizontally_face_up_deck_gap)
 			end
 			from
-				a_deck.go_i_th (a_deck.count - info.expanded_count + 1)
+				a_deck.go_i_th (a_deck.count - l_info.expanded_count + 1)
 			until
 				a_deck.exhausted
 			loop
-				a_deck.item.set_y(info.y)
+				a_deck.item.set_y(l_info.y)
 				if a_deck.item.is_face_up then
 					if
 						not is_dragging and l_indentation < expanded_vertically_face_up_deck_gap and not a_deck.islast and
-						cursor_on(info.x, info.y, l_indentation, a_deck.item.height)
+						cursor_on(l_info.x, l_info.y, l_indentation, a_deck.item.height)
 					then
-						a_deck.item.set_x (info.x - (expanded_horizontally_face_up_deck_gap - l_indentation))
+						a_deck.item.set_x (l_info.x - (expanded_horizontally_face_up_deck_gap - l_indentation))
 					else
-						a_deck.item.set_x (info.x)
+						a_deck.item.set_x (l_info.x)
 					end
-					info.x := info.x + l_indentation
+					l_info.x := l_info.x + l_indentation
 				else
-					a_deck.item.set_x (info.x)
-					info.x := info.x + Expanded_face_down_deck_gap
+					a_deck.item.set_x (l_info.x)
+					l_info.x := l_info.x + Expanded_face_down_deck_gap
 				end
 				a_deck.forth
 			end

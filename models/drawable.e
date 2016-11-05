@@ -9,7 +9,7 @@ deferred class
 
 inherit
 	COORDINATES
-	
+
 feature {NONE} -- Initialization
 
 	make(a_image_factory:IMAGE_FACTORY)
@@ -60,6 +60,23 @@ feature {NONE} -- Implementation
 			Sub_Image_Y_Assign: sub_image_y ~ a_information.sub_image_y
 			Width_Assign: width ~ a_information.sub_image_width
 			Height_Assign: height ~ a_information.sub_image_height
+		end
+
+	set_whole_image(a_image:GAME_TEXTURE)
+			-- Assign `image', `sub_image_x', `sub_image_y', `width' and `height'
+			-- using the whole image in `a_image'
+		do
+			image := a_image
+			sub_image_x := 0
+			sub_image_y := 0
+			width := a_image.width
+			height := a_image.height
+		ensure
+			Image_Assign: image ~ a_image
+			Sub_Image_X_Assign: sub_image_x ~ 0
+			Sub_Image_Y_Assign: sub_image_y ~ 0
+			Width_Assign: width ~ a_image.width
+			Height_Assign: height ~ a_image.height
 		end
 
 note

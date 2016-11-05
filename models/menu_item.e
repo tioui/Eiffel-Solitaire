@@ -1,42 +1,42 @@
 note
-	description: "A {BACKGROUND} containing only one color"
+	description: "An item (text and action) of a menu."
 	author: "Louis Marchand"
-	date: "Mon, 01 Aug 2016 21:17:25 +0000"
+	date: "Sat, 05 Nov 2016 03:19:48 +0000"
 	revision: "0.1"
 
 class
-	COLOR_BACKGROUND
+	MENU_ITEM
 
 inherit
-	BACKGROUND
+	DRAWABLE
+		rename
+			make as make_drawable
+		end
 
 create
 	make
 
-feature {NONE} -- Initialization
+feature {NONE} -- Initialisation
 
-	make(a_color:GAME_COLOR)
-			-- Initialization of `Current' using `a_color' as `color'
+	make(a_image_factory:IMAGE_FACTORY; a_image:GAME_TEXTURE; a_action:PROCEDURE)
+			-- Initialisation of `Current' using `a_image_factory' as `image_factory', `a_image' as `image' and
+			-- `a_action' as `action'
 		do
-			color := a_color
-		ensure
-			Is_Color_Assign: color ~ a_color
+			make_drawable(a_image_factory)
+			set_whole_image (a_image)
+			action := a_action
 		end
+
 feature -- Access
 
-	draw(a_renderer:GAME_RENDERER)
+	reload_image
 			-- <Precursor>
-		local
-			l_old_color:GAME_COLOR_READABLE
+			-- Do Nothing
 		do
-			l_old_color := a_renderer.drawing_color
-			a_renderer.set_drawing_color (color)
-			a_renderer.clear
-			a_renderer.set_drawing_color (l_old_color)
 		end
 
-	color:GAME_COLOR
-			-- The color to `draw' on `Current'
+	action:PROCEDURE
+			-- What to do when the user click on `Current'
 
 invariant
 

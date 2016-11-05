@@ -1,44 +1,33 @@
 note
-	description: "A {BACKGROUND} containing only one color"
+	description: "A {DRAWABLE}, but with the `width' and `height' writable"
 	author: "Louis Marchand"
-	date: "Mon, 01 Aug 2016 21:17:25 +0000"
+	date: "Sat, 05 Nov 2016 03:19:48 +0000"
 	revision: "0.1"
 
-class
-	COLOR_BACKGROUND
+deferred class
+	DIMENSION_MUTABLE_DRAWABLE
 
 inherit
-	BACKGROUND
+	DRAWABLE
 
-create
-	make
-
-feature {NONE} -- Initialization
-
-	make(a_color:GAME_COLOR)
-			-- Initialization of `Current' using `a_color' as `color'
-		do
-			color := a_color
-		ensure
-			Is_Color_Assign: color ~ a_color
-		end
 feature -- Access
 
-	draw(a_renderer:GAME_RENDERER)
-			-- <Precursor>
-		local
-			l_old_color:GAME_COLOR_READABLE
+	set_width(a_width:INTEGER)
+			-- Assign `a_width' to `width'
 		do
-			l_old_color := a_renderer.drawing_color
-			a_renderer.set_drawing_color (color)
-			a_renderer.clear
-			a_renderer.set_drawing_color (l_old_color)
+			width := a_width
+		ensure
+			Is_Assign: width ~ a_width
 		end
 
-	color:GAME_COLOR
-			-- The color to `draw' on `Current'
+	set_height(a_height:INTEGER)
+			-- Assign `a_height' to `height'
+		do
+			height := a_height
+		ensure
+			Is_Assign: height ~ a_height
+		end
 
-invariant
 
 note
 	license: "[

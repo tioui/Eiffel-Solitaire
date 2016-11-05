@@ -1,44 +1,25 @@
 note
-	description: "A {BACKGROUND} containing only one color"
+	description: "The visual panel of a menu"
 	author: "Louis Marchand"
-	date: "Mon, 01 Aug 2016 21:17:25 +0000"
+	date: "Sat, 05 Nov 2016 03:19:48 +0000"
 	revision: "0.1"
 
 class
-	COLOR_BACKGROUND
+	MENU_PANEL
 
 inherit
-	BACKGROUND
+	DRAWABLE
 
 create
 	make
 
-feature {NONE} -- Initialization
-
-	make(a_color:GAME_COLOR)
-			-- Initialization of `Current' using `a_color' as `color'
-		do
-			color := a_color
-		ensure
-			Is_Color_Assign: color ~ a_color
-		end
 feature -- Access
 
-	draw(a_renderer:GAME_RENDERER)
+	reload_image
 			-- <Precursor>
-		local
-			l_old_color:GAME_COLOR_READABLE
 		do
-			l_old_color := a_renderer.drawing_color
-			a_renderer.set_drawing_color (color)
-			a_renderer.clear
-			a_renderer.set_drawing_color (l_old_color)
+			set_whole_image(image_factory.menu_inside)
 		end
-
-	color:GAME_COLOR
-			-- The color to `draw' on `Current'
-
-invariant
 
 note
 	license: "[

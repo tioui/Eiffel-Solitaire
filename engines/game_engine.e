@@ -10,7 +10,7 @@ deferred class
 inherit
 	ENGINE
 		redefine
-			set_events, redraw_scene, run
+			set_events, redraw_scene, run, cursor_coordinate
 		end
 
 feature -- Access
@@ -36,17 +36,13 @@ feature -- Access
 			-- Redraw every element of the scene
 		local
 			l_renderer:GAME_RENDERER
-			l_old_color:GAME_COLOR
+			l_old_color:GAME_COLOR_READABLE
 		do
 			l_renderer := context.window.renderer
-			board.background.draw (l_renderer)
 			if attached target as la_target then
 				l_renderer.set_target (la_target)
-				l_old_color := l_renderer.drawing_color
-				l_renderer.set_drawing_color (create {GAME_COLOR}.make (255, 0, 0, 0))
-				l_renderer.clear
-				l_renderer.set_drawing_color (l_old_color)
 			end
+			board.background.draw (l_renderer)
 			draw_drawables(l_renderer)
 			if attached target as la_target then
 				l_renderer.set_original_target
@@ -56,7 +52,6 @@ feature -- Access
 											board_destination_width, board_destination_height
 										)
 			end
-			Precursor
 		end
 
 feature {NONE} -- Implementation
@@ -115,34 +110,6 @@ feature {NONE} -- Implementation
 			-- When the {GAME_WINDOW} has been resized
 		do
 			set_board_destination
-		end
-
-	cursor_on(a_x, a_y, a_width, a_height:INTEGER):BOOLEAN
-			-- The mouse cursor is in the area from the point (`a_x',`a_y') and of dimension `a_width'x`a_height'
-		local
-			l_cursor_coordinate:TUPLE[x, y:INTEGER]
-		do
-			l_cursor_coordinate := cursor_coordinate
-			Result := is_on(
-						l_cursor_coordinate.x, l_cursor_coordinate.y,
-						a_x, a_y, a_width, a_height
-					)
-		end
-
-	is_on(a_x, a_y, a_reference_x, a_reference_y, a_reference_width, a_reference_height:INTEGER):BOOLEAN
-			-- The point (`a_x',`a_y') is in the rectangle starting at (`a_reference_x',`a_reference_y')
-			-- with dimension `a_reference_width'x`a_reference_height'
-		do
-			Result := (
-						a_x >= a_reference_x and a_x < a_reference_x + a_reference_width and
-						a_y >= a_reference_y and a_y < a_reference_y + a_reference_height
-					)
-		end
-
-	is_on_drawable(a_x, a_y:INTEGER; a_drawable:DRAWABLE):BOOLEAN
-			-- True if the point (`a_x',`a_y') is on `a_drawable'
-		do
-			Result := is_on(a_x, a_y, a_drawable.x, a_drawable.y, a_drawable.width, a_drawable.height)
 		end
 
 	to_board_coordinate(a_x, a_y:INTEGER):TUPLE[x, y:INTEGER]

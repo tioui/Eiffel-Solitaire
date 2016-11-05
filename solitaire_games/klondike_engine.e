@@ -206,6 +206,7 @@ feature {NONE} -- Implementation
 						l_slot.deck.extend (a_slot.deck.item)
 						a_slot.deck.remove
 						move_deck_slot_to_deck_slot_fast (l_slot, la_slot, 100)
+						a_slot.deck.last.show
 					end
 				end
 			end

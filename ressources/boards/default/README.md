@@ -6,5 +6,9 @@ The Reload icon has been created from the Reload icon from mlampret:
  * URL: https://openclipart.org/detail/171074/reload-icon
  * License: CC0 1.0 (https://creativecommons.org/publicdomain/zero/1.0/)
 
+The Menu Font came from the Hanken Book font from Alfredo Marco Pradil :
+ * URL: https://fontlibrary.org/en/font/hanken
+ * License: SFL (http://scripts.sil.org/OFL)
+
 The rest of the design has been created by Louis Marchand:
  * License: CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/)

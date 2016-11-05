@@ -36,4 +36,23 @@ feature -- Access
 invariant
 	From_Lower_Than_To: from_timestamp < to_timestamp
 	Is_Done_Valid: (timestamp >= to_timestamp implies is_done) and (is_done implies timestamp >= to_timestamp)
+
+note
+	license: "[
+		    Copyright (C) 2016 Louis Marchand
+
+		    This program is free software: you can redistribute it and/or modify
+		    it under the terms of the GNU General Public License as published by
+		    the Free Software Foundation, either version 3 of the License, or
+		    (at your option) any later version.
+
+		    This program is distributed in the hope that it will be useful,
+		    but WITHOUT ANY WARRANTY; without even the implied warranty of
+		    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+		    GNU General Public License for more details.
+
+		    You should have received a copy of the GNU General Public License
+		    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+		]"
+
 end
