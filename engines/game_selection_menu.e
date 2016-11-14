@@ -31,6 +31,12 @@ feature {NONE} -- Initialization
 			add_items ("Retour", agent quit)
 		end
 
+	initialize_title
+			-- <Precursor>
+		do
+			title := "Jeux"
+		end
+
 feature -- Access
 
 	game_selected:detachable GAME_ENGINE

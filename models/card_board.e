@@ -10,7 +10,7 @@ class
 inherit
 	BOARD
 		redefine
-			make
+			make, prepare
 		end
 
 create
@@ -26,6 +26,12 @@ feature {NONE} -- Initialization
 		end
 
 feature -- Access
+
+	prepare
+			-- <Precursor>
+		do
+			deck_slots.wipe_out
+		end
 
 	deck_slots:LIST[DECK_SLOT]
 			-- Every slot that can be used to put a {DECK} of {CARD}

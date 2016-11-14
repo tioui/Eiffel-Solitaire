@@ -1,16 +1,27 @@
 note
-	description: "A {DRAWABLE}, but with the `width' and `height' writable"
+	description: "A {MENU_ITEM} that is used to put a space in a menu."
 	author: "Louis Marchand"
-	date: "Sat, 05 Nov 2016 03:19:48 +0000"
+	date: "Mon, 14 Nov 2016 02:57:39 +0000"
 	revision: "0.1"
 
-deferred class
-	DIMENSION_MUTABLE_DRAWABLE
+class
+	MENU_ITEM_SPACER
 
 inherit
-	DRAWABLE
-		export
-			{ANY} set_width, set_height
+	MENU_ITEM
+		redefine
+			default_create
+		end
+
+create
+	default_create
+
+feature {NONE} -- Initialization
+
+	default_create
+			-- Initialization of `Current'
+		do
+			is_selectable := False
 		end
 
 note

@@ -1,36 +1,19 @@
 note
-	description: "A playing surface"
+	description: "An obhject having a `width' and a `height'"
 	author: "Louis Marchand"
-	date: "Mon, 01 Aug 2016 21:17:25 +0000"
+	date: "Mon, 14 Nov 2016 02:57:39 +0000"
 	revision: "0.1"
 
 class
-	BOARD
-
-create
-	make
-
-feature {NONE} -- Initialization
-
-	make(a_factory:IMAGE_FACTORY)
-			-- Initialization of `Current' using `a_factory' as `image_factory'
-		do
-			image_factory := a_factory
-			background := image_factory.board_background
-		end
+	DIMENSIONS
 
 feature -- Access
 
-	prepare
-			-- Re-Initialize `Current'
-		do
-		end
+	width:INTEGER
+			-- The vertical dimension of the part of `image' to show
 
-	background:BACKGROUND
-			-- The back desing of `Current'
-
-	width:INTEGER assign set_width
-			-- The vertical dimension of the playing area
+	height:INTEGER
+			-- The vertical dimension of the part of `image' to show
 
 	set_width(a_width:INTEGER)
 			-- Assign `a_width' to `width'
@@ -40,9 +23,6 @@ feature -- Access
 			Is_Assign: width ~ a_width
 		end
 
-	height:INTEGER assign set_height
-			-- The horizontal dimension of the playing area
-
 	set_height(a_height:INTEGER)
 			-- Assign `a_height' to `height'
 		do
@@ -50,13 +30,6 @@ feature -- Access
 		ensure
 			Is_Assign: height ~ a_height
 		end
-
-feature {NONE} -- Implementation
-
-	image_factory:IMAGE_FACTORY
-			-- Factory used to generate images
-
-invariant
 
 note
 	license: "[
@@ -75,6 +48,5 @@ note
 		    You should have received a copy of the GNU General Public License
 		    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 		]"
-
 
 end

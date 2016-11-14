@@ -44,9 +44,12 @@ feature {NONE} -- Initialization
 			-- Run the engines
 		local
 			l_engine:ENGINE
+			l_game_engine:detachable GAME_ENGINE
 			l_must_quit:BOOLEAN
 			l_memory:MEMORY
+			l_must_continue:BOOLEAN
 		do
+			l_must_continue := False
 			create l_memory
 			from
 				create {MAIN_MENU}l_engine.make_new (a_context)
@@ -54,16 +57,42 @@ feature {NONE} -- Initialization
 			until
 				l_engine.has_error or l_must_quit
 			loop
-				l_engine.run
+				if l_must_continue then
+					l_engine.resume
+					l_must_continue := False
+				else
+					l_engine.run
+				end
 				l_must_quit := l_engine.quit_signal_received
 				if not l_must_quit then
 					if attached {MAIN_MENU} l_engine as la_engine then
 						if attached la_engine.game_selected as la_game then
 							l_engine := la_game
+						else
+							if (la_engine.must_restart or la_engine.must_continue) and attached l_game_engine as la_game_engine then
+								l_engine := la_game_engine
+								if la_engine.must_continue then
+									l_must_continue := True
+								end
+							end
+						end
+					elseif attached {GAME_ENGINE} l_engine as la_engine then
+						if la_engine.is_menu_requested then
+							l_game_engine := la_engine
+							l_engine := main_menu_from_game_engine(a_context, la_engine)
 						end
 					end
 				end
 			end
+		end
+
+	main_menu_from_game_engine(a_context:CONTEXT;a_game_engine:GAME_ENGINE):MAIN_MENU
+			-- Create a {MAIN_MENU} from a `a_game_engine'
+		local
+			l_background:IMAGE_BACKGROUND
+		do
+			create l_background.make (a_game_engine.scene_image)
+			create Result.make_from_game (a_context, l_background)
 		end
 
 note

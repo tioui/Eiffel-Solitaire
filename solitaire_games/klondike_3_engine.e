@@ -11,13 +11,20 @@ inherit
 	KLONDIKE_ENGINE
 		redefine
 			prepare_board,
-			manage_reload_click
+			manage_reload_click,
+			inititalize_game_name
 		end
 
 create
 	make
 
 feature {NONE} -- Implementation
+
+	inititalize_game_name
+			-- Initialize the `game_name'
+		do
+			game_name := "Klondike 3 cartes"
+		end
 
 	prepare_board
 			-- <Precursor>

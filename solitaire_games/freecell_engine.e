@@ -16,6 +16,12 @@ create
 
 feature {NONE} -- Implementation
 
+	inititalize_game_name
+			-- Initialize the `game_name'
+		do
+			game_name := "Freecell"
+		end
+
 	prepare_cards
 			-- <Precursor>
 		local

@@ -9,6 +9,10 @@ deferred class
 
 inherit
 	COORDINATES
+	DIMENSIONS
+		export
+			{NONE} set_width, set_height
+		end
 
 feature {NONE} -- Initialization
 
@@ -26,9 +30,6 @@ feature -- Access
 
 	sub_image_x, sub_image_y:INTEGER
 			-- The starting position of the part of `image' to show
-
-	width, height:INTEGER
-			-- The dimension of the part of `image' to show
 
 	image:GAME_TEXTURE
 			-- Visual representation of `Current'

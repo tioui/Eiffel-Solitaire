@@ -73,20 +73,20 @@ feature -- Access
 			load_texture(Boards_directory + a_name, "decks")
 			if attached last_loaded_texture as la_decks_texture then
 				decks := la_decks_texture
-				load_background(a_name)
-				load_texture(Boards_directory + a_name, "menu_inside")
-				if attached last_loaded_texture as la_menu_inside_texture then
-					menu_inside := la_menu_inside_texture
-					load_texture(Boards_directory + a_name, "menu_border")
-					if attached last_loaded_texture as la_menu_border_texture then
-						menu_border := la_menu_border_texture
-					end
+			end
+			load_background(a_name)
+			load_texture(Boards_directory + a_name, "menu_inside")
+			if attached last_loaded_texture as la_menu_inside_texture then
+				menu_inside := la_menu_inside_texture
+				load_texture(Boards_directory + a_name, "menu_border")
+				if attached last_loaded_texture as la_menu_border_texture then
+					menu_border := la_menu_border_texture
 				end
-				loaded_menu_font_name := a_name
-				load_texture(Boards_directory + a_name, "menu_select")
-				if attached last_loaded_texture as la_menu_select_texture then
-					menu_select := la_menu_select_texture
-				end
+			end
+			loaded_menu_font_name := a_name
+			load_texture(Boards_directory + a_name, "menu_select")
+			if attached last_loaded_texture as la_menu_select_texture then
+				menu_select := la_menu_select_texture
 			end
 		end
 
@@ -184,6 +184,7 @@ feature -- Access
 
 	menu_inside:GAME_TEXTURE
 			-- The background inside menus used in {MENU_ENGINE}
+
 
 	get_menu_left
 			-- Load into `image_informations' the left border of menus used in {MENU_ENGINE}

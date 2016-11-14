@@ -41,9 +41,12 @@ feature {NONE} -- Initialization
 	initialize_items
 			-- Initialize `items'
 		do
+			must_restart := False
+			must_continue := False
 			internal_items.wipe_out
 			if with_continue then
 				add_items ("Continuer", agent continue)
+				add_items ("Recommencer", agent restart)
 				add_items ("Changer de jeu", agent change_game)
 			else
 				add_items ("Choisir un jeu", agent change_game)
@@ -57,10 +60,22 @@ feature {NONE} -- Initialization
 			add_items ("Quitter", agent on_quit_signal (0))
 		end
 
+	initialize_title
+			-- <Precursor>
+		do
+			title := "Menu"
+		end
+
 feature -- Access
 
 	game_selected:detachable GAME_ENGINE
 			-- The game selected in the {GAME_SELECTION_MENU} (if any)
+
+	must_restart:BOOLEAN
+			-- The user ask to restart the presently used game
+
+	must_continue:BOOLEAN
+			-- The user ask to continue the presently used game
 
 	run
 			-- <Precursor>
@@ -77,7 +92,7 @@ feature -- Access
 				if is_game_selection_selected then
 					start_selection_menu
 				end
-				l_must_quit := attached game_selected or quit_signal_received or has_error
+				l_must_quit := attached game_selected or quit_signal_received or has_error or must_continue or must_restart
 			end
 		end
 
@@ -89,6 +104,15 @@ feature {NONE} -- Implementation
 	continue
 			-- Continue the game presently running
 		do
+			must_continue := True
+			quit
+		end
+
+	restart
+			-- Restart the game presently running
+		do
+			must_restart := True
+			quit
 		end
 
 	toggle_fullscreen

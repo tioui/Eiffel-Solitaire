@@ -37,13 +37,19 @@ feature -- Access
 			context.set_events
 		end
 
-	run
-			-- Execute `Current'
+	resume
+			-- Continue running `Current'
 		do
 			quit_signal_received := False
 			game_library.clear_all_events
 			set_events
 			game_library.launch
+		end
+
+	run
+			-- Execute `Current'
+		do
+			resume
 		end
 
 	quit

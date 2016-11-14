@@ -1,18 +1,40 @@
 note
-	description: "A {DRAWABLE}, but with the `width' and `height' writable"
+	description: "A {DRAWABLE} showing a item of a menu."
 	author: "Louis Marchand"
-	date: "Sat, 05 Nov 2016 03:19:48 +0000"
+	date: "Mon, 14 Nov 2016 02:57:39 +0000"
 	revision: "0.1"
 
-deferred class
-	DIMENSION_MUTABLE_DRAWABLE
+class
+	MENU_ITEM_DRAWABLE
 
 inherit
-	DRAWABLE
-		export
-			{ANY} set_width, set_height
+	IMAGE_DRAWABLE
+		rename
+			make as make_image_drawable
 		end
 
+	MENU_ITEM
+
+create
+	make
+
+feature {NONE} -- Initialisation
+
+	make(a_image_factory:IMAGE_FACTORY; a_image:GAME_TEXTURE; a_action:PROCEDURE)
+			-- Initialisation of `Current' using `a_image_factory' as `image_factory', `a_image' as `image' and
+			-- `a_action' as `action'
+		do
+			make_image_drawable(a_image_factory, a_image)
+			is_selectable:= True
+			action := a_action
+		end
+
+feature -- Access
+
+	action:PROCEDURE
+			-- What to do when the user click on `Current'
+
+invariant
 note
 	license: "[
 		    Copyright (C) 2016 Louis Marchand
