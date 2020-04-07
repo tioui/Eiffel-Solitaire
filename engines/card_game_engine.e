@@ -98,7 +98,7 @@ feature {NONE} -- Implementation
 																	a_nb_clicks:NATURAL_8)
 			-- Launched when the user press a mouse button
 		do
-			if a_mouse_state.is_left_button_released and not is_animate then
+			if a_mouse_state.is_left_button and not is_animate then
 				if a_timestamp < clicking_timestamp + 300 then
 					if is_dragging then
 						cancel_drop(False)
@@ -246,7 +246,7 @@ feature {NONE} -- Implementation
 			l_mouse_coordinates:TUPLE[x, y:INTEGER]
 			l_is_done:BOOLEAN
 		do
-			if a_mouse_state.is_left_button_pressed and not is_dragging and not is_animate then
+			if a_mouse_state.is_left_button and not is_dragging and not is_animate then
 				clicking_timestamp := a_timestamp
 				l_mouse_coordinates := to_board_coordinate(a_mouse_state.x, a_mouse_state.y)
 				l_deck_slots := board.deck_slots
@@ -311,6 +311,7 @@ feature {NONE} -- Implementation
 			l_deck:DECK[CARD]
 			l_is_done:BOOLEAN
 			l_count, l_index:INTEGER
+
 		do
 			l_deck := a_deck_slot.deck
 			if l_deck.count > 0 then
@@ -329,7 +330,7 @@ feature {NONE} -- Implementation
 						l_index > l_count
 					loop
 						if is_on_drawable (a_mouse_coordinates.x, a_mouse_coordinates.y, l_deck.item) then
-							start_dragging(a_deck_slot, l_deck.index, l_deck.duplicate (l_deck.count), a_mouse_coordinates, a_deck_slot.is_expanded_vertically)
+							start_dragging(a_deck_slot, l_deck.index, l_deck.sub_deck (l_deck.count), a_mouse_coordinates, a_deck_slot.is_expanded_vertically)
 							l_is_done := True
 						end
 						l_index := l_index + 1
@@ -337,7 +338,7 @@ feature {NONE} -- Implementation
 					end
 				else
 					if is_on_drawable (a_mouse_coordinates.x, a_mouse_coordinates.y, l_deck.item) then
-						start_dragging(a_deck_slot, l_deck.index, l_deck.duplicate (1), a_mouse_coordinates, True)
+						start_dragging(a_deck_slot, l_deck.index, l_deck.sub_deck (1), a_mouse_coordinates, True)
 					end
 				end
 			end

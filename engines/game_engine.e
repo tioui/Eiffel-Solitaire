@@ -10,7 +10,7 @@ deferred class
 inherit
 	ENGINE
 		redefine
-			make, set_events, redraw_scene, run, cursor_coordinate, resume
+			make, set_events, run, cursor_coordinate, resume
 		end
 
 feature {NONE} -- Initialization

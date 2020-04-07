@@ -121,7 +121,6 @@ feature {NONE} -- Initialization
 			l_format:GAME_PIXEL_FORMAT
 			l_texture:GAME_TEXTURE_TARGET
 			l_old_target:GAME_RENDER_TARGET
-			l_width :INTEGER
 		do
 			l_renderer := context.window.renderer
 			create l_format.default_create

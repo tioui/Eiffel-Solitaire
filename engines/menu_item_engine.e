@@ -10,7 +10,7 @@ deferred class
 inherit
 	ENGINE
 		redefine
-			make, redraw_scene, set_events
+			make,set_events
 		end
 	COORDINATES
 		undefine

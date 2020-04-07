@@ -62,11 +62,39 @@ feature -- Access
 			l_cut := (random.last_random_integer_between (0, count + 1))
 			l_pos := cursor
 			start
-			l_top := duplicate (l_cut)
+			l_top := sub_deck (l_cut)
 			go_i_th (l_cut + 1)
-			l_bottom := duplicate (count)
+			l_bottom := sub_deck (count)
 			go_to (l_pos)
 			Result := [l_top, l_bottom]
+		end
+
+	sub_deck (a_count: INTEGER_32): DECK [G]
+			-- Copy of sub-deck beginning at current position
+			-- and having min (`a_count`, `from_here`) items,
+			-- where `from_here` is the number of items
+			-- at or to the right of current position.
+		require
+			not_off_unless_after: off implies after
+			valid_subchain: a_count >= 0
+		local
+			l_pos: CURSOR
+			l_counter: INTEGER_32
+		do
+			from
+				create Result.make
+				if object_comparison then
+					Result.compare_objects
+				end
+				l_pos := cursor
+			until
+				(l_counter = a_count) or else exhausted
+			loop
+				Result.extend (item)
+				forth
+				l_counter := l_counter + 1
+			end
+			go_to (l_pos)
 		end
 
 note
